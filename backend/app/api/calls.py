@@ -21,6 +21,7 @@ from app.models.data_packet import DataPacket
 from app.models.lead import Lead
 from app.models.transcript import Transcript
 from app.utils.logger import logger
+from app.utils.response_cache import get_response_cache
 
 from app.agents.voice_agent import VoiceAgent
 
@@ -462,6 +463,9 @@ async def twilio_webhook(call_id: int, request: Request, db: Session = Depends(g
 
 @router.post("/{call_id}/webhook/turn")
 async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_db)):
+    import time
+    turn_start = time.time()
+
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         return Response(content="<Response></Response>", media_type="application/xml")
@@ -505,10 +509,17 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
             agent_text=reply_clean,
             agent_audio_url=agent_audio_url,
         )
+
+        # Log total turn latency and cache stats
+        turn_elapsed = (time.time() - turn_start) * 1000
+        cache_stats = get_response_cache().get_stats()
+        logger.info(f"[TELEMETRY] Turn complete in {turn_elapsed:.2f}ms | Cache stats: {cache_stats}")
+
         return Response(content=twiml, media_type="application/xml")
 
     except Exception as e:
-        logger.error(f"Turn webhook error: {str(e)}")
+        turn_elapsed = (time.time() - turn_start) * 1000
+        logger.error(f"Turn webhook error after {turn_elapsed:.2f}ms: {str(e)}")
         return Response(content="<Response></Response>", media_type="application/xml")
 
 

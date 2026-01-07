@@ -31,6 +31,7 @@ from app.services.openai_service import OpenAIService
 from app.services.twilio_service import TwilioService
 from app.utils.logger import logger
 from app.utils.latency_tracker import LatencyTracker
+from app.utils.response_cache import get_response_cache
 
 try:
     from twilio.twiml.voice_response import VoiceResponse, Gather
@@ -517,6 +518,33 @@ class VoiceAgent:
 
     def _should_use_openai_tts(self) -> bool:
         return bool(self._public_base_url()) and self.openai.is_tts_enabled()
+
+    async def preheat_tts_cache(self) -> None:
+        """
+        Pre-generate TTS audio for common opening/closing phrases.
+        Runs once at startup to warm the cache.
+        """
+        if not self._should_use_openai_tts():
+            return
+
+        common_phrases = [
+            "Hi there — this is AADOS calling from Algonox. Did I catch you at a bad time?",
+            "Before we continue—can you hear me clearly?",
+            "Got it. What's the best way to think about that on your side?",
+            "No problem at all—thanks for your time. I'll let you go.",
+            "Totally fair—thanks for the quick response. I'll let you go.",
+            "I hear you — that's a fair concern.",
+            "Thanks for your time, and have a great day.",
+        ]
+
+        logger.info("[PREHEAT] Starting TTS cache pre-warming...")
+        for phrase in common_phrases:
+            try:
+                await self.openai.tts_to_file(phrase, voice=self.openai_tts_voice_forced)
+                logger.info(f"[PREHEAT] Cached: {phrase[:50]}...")
+            except Exception as e:
+                logger.warning(f"[PREHEAT] Failed to cache '{phrase[:30]}...': {e}")
+        logger.info("[PREHEAT] TTS cache pre-warming complete")
 
     async def tts_audio_url(self, call_id: int, text: str) -> Optional[str]:
         """
@@ -1180,13 +1208,25 @@ class VoiceAgent:
             last_buying_signal=last_buy_signal,
         )
 
+        # Check response cache before calling LLM (latency optimization)
         tracker.mark("llm_start")
-        reply = await self.openai.generate_completion(
-            prompt=prompt,
-            temperature=0.5,
-            max_tokens=150,  # Reduced from 180 for faster generation (voice agents should be concise)
-            timeout_s=6.0,  # Reduced from 10s for lower-latency voice interactions
-        )
+        cache = get_response_cache()
+        cached_reply = cache.get(int(speak_state.value), call.lead_id, user_input)
+
+        if cached_reply:
+            reply = cached_reply
+            logger.info(f"[CACHE] Using cached response for state={speak_state.value} lead_id={call.lead_id}")
+        else:
+            reply = await self.openai.generate_completion(
+                prompt=prompt,
+                temperature=0.5,
+                max_tokens=150,  # Reduced from 180 for faster generation (voice agents should be concise)
+                timeout_s=6.0,  # Reduced from 10s for lower-latency voice interactions
+            )
+            # Cache the response for future calls
+            if reply:
+                cache.set(int(speak_state.value), call.lead_id, user_input, reply)
+
         tracker.mark("llm_end")
         reply_clean = self._postprocess_agent_text(lead, reply or "")
         if not reply_clean:

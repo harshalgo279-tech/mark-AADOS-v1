@@ -32,6 +32,7 @@ from app.services.twilio_service import TwilioService
 from app.utils.logger import logger
 from app.utils.latency_tracker import LatencyTracker
 from app.utils.response_cache import get_response_cache
+from app.utils.quick_responses import try_quick_response
 
 try:
     from twilio.twiml.voice_response import VoiceResponse, Gather
@@ -1208,24 +1209,48 @@ class VoiceAgent:
             last_buying_signal=last_buy_signal,
         )
 
-        # Check response cache before calling LLM (latency optimization)
+        # Try quick response first (deterministic, no API call)
         tracker.mark("llm_start")
-        cache = get_response_cache()
-        cached_reply = cache.get(int(speak_state.value), call.lead_id, user_input)
+        quick_reply = try_quick_response(int(speak_state.value), user_input, lead.name)
 
-        if cached_reply:
-            reply = cached_reply
-            logger.info(f"[CACHE] Using cached response for state={speak_state.value} lead_id={call.lead_id}")
+        if quick_reply:
+            reply = quick_reply
         else:
-            reply = await self.openai.generate_completion(
-                prompt=prompt,
-                temperature=0.5,
-                max_tokens=150,  # Reduced from 180 for faster generation (voice agents should be concise)
-                timeout_s=6.0,  # Reduced from 10s for lower-latency voice interactions
-            )
-            # Cache the response for future calls
-            if reply:
-                cache.set(int(speak_state.value), call.lead_id, user_input, reply)
+            # Check response cache before calling LLM (latency optimization)
+            cache = get_response_cache()
+            cached_reply = cache.get(int(speak_state.value), call.lead_id, user_input)
+
+            if cached_reply:
+                reply = cached_reply
+                logger.info(f"[CACHE] Using cached response for state={speak_state.value} lead_id={call.lead_id}")
+            else:
+                # Smart state-specific timeouts: discovery states need more time, simple states need less
+                state_timeouts = {
+                    0: 4.0,  # STATE_0 (opening) - simple, fast
+                    1: 4.0,  # STATE_1 (permission) - simple, fast
+                    2: 5.0,  # STATE_2 (safe discovery) - moderate
+                    3: 5.0,  # STATE_3 (earned discovery) - moderate
+                    4: 4.5,  # STATE_4 (problem label) - moderate
+                    5: 5.0,  # STATE_5 (quantification) - moderate
+                    6: 6.0,  # STATE_6 (insight) - needs more thought
+                    7: 6.0,  # STATE_7 (solution mapping) - needs more thought
+                    8: 6.0,  # STATE_8 (objection handling) - complex
+                    9: 5.0,  # STATE_9 (authority) - moderate
+                    10: 5.0,  # STATE_10 (risk reversal) - moderate
+                    11: 5.0,  # STATE_11 (closing) - moderate
+                    12: 4.0,  # STATE_12 (exit) - simple, fast
+                }
+                timeout = state_timeouts.get(int(speak_state.value), 5.0)
+
+                reply = await self.openai.generate_completion(
+                    prompt=prompt,
+                    temperature=0.5,
+                    max_tokens=150,  # Reduced from 180 for faster generation (voice agents should be concise)
+                    timeout_s=timeout,  # Smart state-specific timeout
+                )
+                # Cache the response for future calls
+                if reply:
+                    cache.set(int(speak_state.value), call.lead_id, user_input, reply)
 
         tracker.mark("llm_end")
         reply_clean = self._postprocess_agent_text(lead, reply or "")

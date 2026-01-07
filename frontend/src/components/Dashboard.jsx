@@ -253,7 +253,7 @@ const Dashboard = () => {
       background: 'linear-gradient(135deg, #050507 0%, #0A0D10 50%, #0E1116 100%)',
       position: 'relative',
       padding: '40px',
-      fontFamily: "'Orbitron', sans-serif"
+      fontFamily: "var(--font-primary)"
     }}>
       {/* Grid Background */}
       <div style={{
@@ -324,7 +324,7 @@ const Dashboard = () => {
                 letterSpacing: '1px',
                 fontSize: '12px',
                 fontWeight: '600',
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "var(--font-primary)",
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 alignItems: 'center',
@@ -348,7 +348,7 @@ const Dashboard = () => {
                 letterSpacing: '2px',
                 fontSize: '12px',
                 fontWeight: '600',
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "var(--font-primary)",
                 transition: 'all 0.3s ease',
                 opacity: loading ? 0.5 : 1,
                 display: 'flex',

@@ -39,7 +39,7 @@ const PDFViewer = ({ pdfUrl, onClose }) => {
               alignItems: 'center',
               gap: '8px',
               fontSize: '12px',
-              fontFamily: "'Orbitron', sans-serif"
+              fontFamily: "var(--font-primary)"
             }}
           >
             <Download size={16} />

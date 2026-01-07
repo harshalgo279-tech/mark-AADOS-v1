@@ -30,6 +30,7 @@ from app.models.lead import Lead
 from app.services.openai_service import OpenAIService
 from app.services.twilio_service import TwilioService
 from app.utils.logger import logger
+from app.utils.latency_tracker import LatencyTracker
 
 try:
     from twilio.twiml.voice_response import VoiceResponse, Gather
@@ -521,6 +522,7 @@ class VoiceAgent:
         """
         Generate (or reuse cached) OpenAI TTS MP3 and return a public URL for Twilio <Play>.
         If anything fails, return None => caller should fallback to Twilio <Say>.
+        Timeout is 15s (aggressive for voice latency optimization).
         """
         if not self._should_use_openai_tts():
             return None
@@ -529,15 +531,21 @@ class VoiceAgent:
         if not text:
             return None
 
+        import time
+        tts_start = time.time()
         try:
             path = await self.openai.tts_to_file(
                 text,
                 voice=self.openai_tts_voice_forced,  # ✅ cedar
+                timeout_s=15.0,  # Aggressive timeout for low-latency voice
             )
+            tts_elapsed = (time.time() - tts_start) * 1000
+            logger.info(f"[LATENCY] TTS generation for call_id={call_id}: {tts_elapsed:.2f}ms")
             filename = os.path.basename(path)
             return urljoin(self._public_base_url(), f"api/calls/{call_id}/tts/{filename}")
         except Exception as e:
-            logger.error(f"TTS generation failed (fallback to Twilio <Say>): {e}")
+            tts_elapsed = (time.time() - tts_start) * 1000
+            logger.error(f"TTS generation failed (fallback to Twilio <Say>) after {tts_elapsed:.2f}ms: {e}")
             return None
 
     # -----------------------------
@@ -808,7 +816,8 @@ class VoiceAgent:
     # -----------------------------
     # Prompt build + postprocess
     # -----------------------------
-    def _transcript_tail(self, call: Call, limit: int = 1800) -> str:
+    def _transcript_tail(self, call: Call, limit: int = 800) -> str:
+        """Keep last 800 chars of transcript for context (reduced from 1800 for latency)."""
         return (call.full_transcript or "")[-limit:]
 
     def _build_state_prompt(
@@ -1070,12 +1079,16 @@ class VoiceAgent:
     # Main generation
     # -----------------------------
     async def generate_reply(self, call: Call, user_input: str) -> str:
+        tracker = LatencyTracker(call_id=call.id)
+        tracker.mark("reply_start")
+
         lead = self.db.query(Lead).filter(Lead.id == call.lead_id).first()
         packet = self.db.query(DataPacket).filter(DataPacket.lead_id == call.lead_id).first()
 
         if not lead:
             return "Thanks for your time."
 
+        tracker.mark("prompt_start")
         state = self._get_conversation_state(call.id)
         self._silent_context_load(lead, call, state)
 
@@ -1155,6 +1168,7 @@ class VoiceAgent:
             return "No problem at all—thanks for your time. I’ll let you go."
 
         # LLM reply for current state
+        tracker.mark("prompt_end")
         prompt = self._build_state_prompt(
             sales_state=speak_state,
             call=call,
@@ -1166,15 +1180,18 @@ class VoiceAgent:
             last_buying_signal=last_buy_signal,
         )
 
+        tracker.mark("llm_start")
         reply = await self.openai.generate_completion(
             prompt=prompt,
             temperature=0.5,
-            max_tokens=180,
-            timeout_s=10.0,
+            max_tokens=150,  # Reduced from 180 for faster generation (voice agents should be concise)
+            timeout_s=6.0,  # Reduced from 10s for lower-latency voice interactions
         )
+        tracker.mark("llm_end")
         reply_clean = self._postprocess_agent_text(lead, reply or "")
         if not reply_clean:
-            reply_clean = "Got it. What’s the best way to think about that on your side?"
+            # Fallback to quick acknowledgement (very fast, natural sounding)
+            reply_clean = "Got it. What's the best way to think about that on your side?"
 
         # Update per-state counters
         state["sales_state_turns"] = int(state.get("sales_state_turns", 0)) + 1
@@ -1210,4 +1227,5 @@ class VoiceAgent:
             pass
 
         self.db.commit()
+        tracker.log_metrics()
         return reply_clean

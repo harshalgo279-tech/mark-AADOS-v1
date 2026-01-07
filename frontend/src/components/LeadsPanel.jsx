@@ -56,7 +56,7 @@ const LeadsPanel = ({ leads, onCallLead, onViewDataPacket }) => {
             color: '#F0F3F8',
             fontSize: '12px',
             cursor: 'pointer',
-            fontFamily: "'Orbitron', sans-serif"
+            fontFamily: "var(--font-primary)"
           }}
         >
           <option value="all">All Status</option>
@@ -170,7 +170,7 @@ const LeadsPanel = ({ leads, onCallLead, onViewDataPacket }) => {
                       letterSpacing: '1px',
                       cursor: 'pointer',
                       borderRadius: '4px',
-                      fontFamily: "'Orbitron', sans-serif",
+                      fontFamily: "var(--font-primary)",
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -204,7 +204,7 @@ const LeadsPanel = ({ leads, onCallLead, onViewDataPacket }) => {
                       letterSpacing: '1px',
                       cursor: 'pointer',
                       borderRadius: '4px',
-                      fontFamily: "'Orbitron', sans-serif",
+                      fontFamily: "var(--font-primary)",
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px'

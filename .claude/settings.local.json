@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude config set:*)",
+      "Bash(npm run build:*)",
+      "Bash(claude config list:*)",
+      "Skill(ralph-loop:ralph-loop)",
+      "Skill(ralph-loop:help)",
+      "Bash(dir \"C:\\\\Users\\\\Vaishnavi M\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\ralph-loop\" /s /b)",
+      "Bash(bash:*)"
+    ]
+  }
+}

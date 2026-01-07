@@ -18,6 +18,9 @@ except Exception:
 
 
 class OpenAIService:
+    # Class-level shared HTTP client for connection pooling
+    _http_client: Optional[httpx.AsyncClient] = None
+
     def __init__(self):
         self.client = None
         if OpenAI is not None and getattr(settings, "OPENAI_API_KEY", None):
@@ -40,6 +43,20 @@ class OpenAIService:
 
         self.tts_cache_dir = (getattr(settings, "TTS_CACHE_DIR", None) or "storage/tts").strip()
 
+    @classmethod
+    def get_http_client(cls) -> httpx.AsyncClient:
+        """Get or create a shared HTTP client for connection pooling."""
+        if cls._http_client is None:
+            cls._http_client = httpx.AsyncClient(timeout=30.0)
+        return cls._http_client
+
+    @classmethod
+    async def close_http_client(cls) -> None:
+        """Close the shared HTTP client."""
+        if cls._http_client is not None:
+            await cls._http_client.aclose()
+            cls._http_client = None
+
     async def generate_completion(
         self,
         prompt: str,
@@ -53,6 +70,9 @@ class OpenAIService:
         """
         if not self.client:
             return "OK"
+
+        import time
+        llm_start = time.time()
 
         def _do():
             return self.client.chat.completions.create(
@@ -70,12 +90,16 @@ class OpenAIService:
 
         try:
             resp = await asyncio.wait_for(asyncio.to_thread(_do), timeout=timeout_s)
+            llm_elapsed = (time.time() - llm_start) * 1000
+            logger.info(f"[LATENCY] OpenAI completion: {llm_elapsed:.2f}ms (model={self.model})")
             return (resp.choices[0].message.content or "").strip()
         except asyncio.TimeoutError:
-            logger.warning("OpenAI completion timed out")
+            llm_elapsed = (time.time() - llm_start) * 1000
+            logger.warning(f"[LATENCY] OpenAI completion timed out after {llm_elapsed:.2f}ms")
             return ""
         except Exception as e:
-            logger.error(f"OpenAI completion error: {e}")
+            llm_elapsed = (time.time() - llm_start) * 1000
+            logger.error(f"[LATENCY] OpenAI completion error after {llm_elapsed:.2f}ms: {e}")
             raise
 
     async def transcribe_audio(self, audio_bytes: bytes) -> Optional[str]:
@@ -163,28 +187,35 @@ class OpenAIService:
             "response_format": response_format,
         }
 
+        import time
+        tts_api_start = time.time()
+
         try:
-            async with httpx.AsyncClient(timeout=timeout_s) as client:
-                resp = await client.post(url, headers=headers, json=payload)
-                try:
-                    resp.raise_for_status()
-                except httpx.HTTPStatusError as e:
-                    # Log response body so you can see "invalid voice" etc.
-                    logger.error(f"OpenAI TTS HTTP error {resp.status_code}: {resp.text[:500]}")
-                    raise e
-                audio_bytes = resp.content
+            # Use shared HTTP client for connection pooling (latency optimization)
+            client = self.get_http_client()
+            resp = await client.post(url, headers=headers, json=payload, timeout=timeout_s)
+            tts_api_elapsed = (time.time() - tts_api_start) * 1000
+            try:
+                resp.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                # Log response body so you can see "invalid voice" etc.
+                logger.error(f"OpenAI TTS HTTP error {resp.status_code}: {resp.text[:500]}")
+                raise e
+            audio_bytes = resp.content
 
             with open(filepath, "wb") as f:
                 f.write(audio_bytes)
 
+            logger.info(f"[LATENCY] OpenAI TTS API call: {tts_api_elapsed:.2f}ms (voice={voice})")
             return os.path.abspath(filepath)
 
         except Exception as e:
+            tts_api_elapsed = (time.time() - tts_api_start) * 1000
             # clean partial file
             try:
                 if os.path.exists(filepath):
                     os.remove(filepath)
             except Exception:
                 pass
-            logger.error(f"OpenAI TTS error: {e}")
+            logger.error(f"[LATENCY] OpenAI TTS error after {tts_api_elapsed:.2f}ms: {e}")
             raise

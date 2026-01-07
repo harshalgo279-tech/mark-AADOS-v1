@@ -1,0 +1,8 @@
+2026-01-06 16:04:46.441 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/23/webhook
+2026-01-06 16:04:47.413 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA9862d5e39279fc3c25521fcc060061be, status=queued
+2026-01-06 16:04:47.422 | INFO     | app.agents.voice_agent:initiate_outbound_call:389 - Outbound call started call_id=23 sid=CA9862d5e39279fc3c25521fcc060061be
+2026-01-06 16:05:15.555 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at Couplr AI
+2026-01-06 16:05:23.098 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-06 16:05:23.109 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for Couplr AI
+2026-01-06 16:05:23.111 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-06 16:05:23.123 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_Couplr_AI_linkedin_pack_call_23_20260106_103523.pdf

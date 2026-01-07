@@ -1,0 +1,41 @@
+2026-01-06 16:30:17.124 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/24/webhook
+2026-01-06 16:30:18.052 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CAe45c100e4f05a32c7c46b1642a05444f, status=queued
+2026-01-06 16:30:18.059 | INFO     | app.agents.voice_agent:initiate_outbound_call:293 - Outbound call started call_id=24 sid=CAe45c100e4f05a32c7c46b1642a05444f
+2026-01-06 16:30:44.258 | ERROR    | app.api.calls:_ensure_call_analysis:200 - _ensure_call_analysis OpenAIService failed: Expecting value: line 1 column 1 (char 0)
+2026-01-06 16:30:44.270 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at Couplr AI
+2026-01-06 16:30:54.116 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-06 16:30:54.133 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for Couplr AI
+2026-01-06 16:30:54.136 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-06 16:30:54.151 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_Couplr_AI_linkedin_pack_call_24_20260106_110054.pdf
+2026-01-06 16:31:00.157 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/25/webhook
+2026-01-06 16:31:01.200 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA94aa0431d1faa7c38589171876523a5e, status=queued
+2026-01-06 16:31:01.213 | INFO     | app.agents.voice_agent:initiate_outbound_call:293 - Outbound call started call_id=25 sid=CA94aa0431d1faa7c38589171876523a5e
+2026-01-06 16:31:13.174 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=24, lead_id=24
+2026-01-06 16:32:11.171 | ERROR    | app.api.calls:_ensure_call_analysis:200 - _ensure_call_analysis OpenAIService failed: Expecting value: line 1 column 1 (char 0)
+2026-01-06 16:32:11.183 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at Couplr AI
+2026-01-06 16:32:20.172 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-06 16:32:20.187 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for Couplr AI
+2026-01-06 16:32:20.190 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-06 16:32:20.208 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_Couplr_AI_linkedin_pack_call_25_20260106_110220.pdf
+2026-01-06 16:32:36.337 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=25, lead_id=24
+2026-01-06 16:34:44.002 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/26/webhook
+2026-01-06 16:34:44.745 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA119c693135532a128734f73b5717a32f, status=queued
+2026-01-06 16:34:44.761 | INFO     | app.agents.voice_agent:initiate_outbound_call:293 - Outbound call started call_id=26 sid=CA119c693135532a128734f73b5717a32f
+2026-01-06 16:35:10.822 | ERROR    | app.api.calls:_ensure_call_analysis:200 - _ensure_call_analysis OpenAIService failed: Expecting value: line 1 column 1 (char 0)
+2026-01-06 16:35:10.838 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at Couplr AI
+2026-01-06 16:35:20.332 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-06 16:35:20.347 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for Couplr AI
+2026-01-06 16:35:20.349 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-06 16:35:20.366 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_Couplr_AI_linkedin_pack_call_26_20260106_110520.pdf
+2026-01-06 16:35:33.849 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/27/webhook
+2026-01-06 16:35:34.638 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CAe2ed60da6923ac28fcabfdcb94c427d3, status=queued
+2026-01-06 16:35:34.646 | INFO     | app.agents.voice_agent:initiate_outbound_call:293 - Outbound call started call_id=27 sid=CAe2ed60da6923ac28fcabfdcb94c427d3
+2026-01-06 16:35:39.944 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=26, lead_id=24
+2026-01-06 16:37:16.459 | ERROR    | app.api.calls:_ensure_call_analysis:200 - _ensure_call_analysis OpenAIService failed: Expecting value: line 1 column 1 (char 0)
+2026-01-06 16:37:16.475 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at Couplr AI
+2026-01-06 16:37:26.958 | WARNING  | app.services.openai_service:generate_completion:89 - OpenAI completion timed out
+2026-01-06 16:37:26.959 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-06 16:37:26.984 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for Couplr AI
+2026-01-06 16:37:26.991 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-06 16:37:27.016 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_Couplr_AI_linkedin_pack_call_27_20260106_110726.pdf
+2026-01-06 16:37:48.904 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=27, lead_id=24

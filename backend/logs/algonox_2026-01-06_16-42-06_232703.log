@@ -1,0 +1,12 @@
+2026-01-06 16:42:29.825 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/28/webhook
+2026-01-06 16:42:30.799 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA8b1ef63ba4a9a6c0719e6f4bed505863, status=queued
+2026-01-06 16:42:30.828 | INFO     | app.agents.voice_agent:initiate_outbound_call:340 - Outbound call started call_id=28 sid=CA8b1ef63ba4a9a6c0719e6f4bed505863
+2026-01-06 16:42:39.611 | INFO     | app.agents.voice_agent:tts_audio_url:161 - ✅ TTS ready call_id=28 voice=None model=None url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/28/tts/tts_155fe19fc325ef43d40e4f58124ab2e30df797fc.mp3
+2026-01-06 16:43:22.734 | INFO     | app.agents.voice_agent:tts_audio_url:161 - ✅ TTS ready call_id=28 voice=None model=None url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/28/tts/tts_d90ec084ea5c5f6089a44a723f92fd723b4ac8a7.mp3
+2026-01-06 16:43:37.360 | ERROR    | app.api.calls:_ensure_call_analysis:200 - _ensure_call_analysis OpenAIService failed: Expecting value: line 1 column 1 (char 0)
+2026-01-06 16:43:37.402 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at Couplr AI
+2026-01-06 16:43:41.230 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-06 16:43:41.259 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for Couplr AI
+2026-01-06 16:43:41.265 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-06 16:43:41.300 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_Couplr_AI_linkedin_pack_call_28_20260106_111341.pdf
+2026-01-06 16:43:59.391 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=28, lead_id=24

@@ -1,0 +1,9 @@
+2026-01-07 18:17:55.414 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+918309838260, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/38/webhook
+2026-01-07 18:17:57.427 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CAc5ce9f4fed1bd42593ff481874ce7b7d, status=queued
+2026-01-07 18:17:57.456 | INFO     | app.agents.voice_agent:initiate_outbound_call:981 - Outbound call started call_id=38 sid=CAc5ce9f4fed1bd42593ff481874ce7b7d
+2026-01-07 18:20:11.740 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Harsha at ALN Medical Management
+2026-01-07 18:20:21.906 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-07 18:20:21.940 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for ALN Medical Management
+2026-01-07 18:20:21.946 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-07 18:20:21.977 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Harsha_ALN_Medical_Management_linkedin_pack_call_38_20260107_125021.pdf
+2026-01-07 18:20:40.349 | INFO     | app.agents.email_agent:generate_and_store_sequence:97 - Created 3 email drafts for call_id=38, lead_id=11

@@ -1,0 +1,18 @@
+2026-01-07 02:32:01.244 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/35/webhook
+2026-01-07 02:32:02.490 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA45caac6b50e46a92f56849b2878dfa2c, status=queued
+2026-01-07 02:32:02.515 | INFO     | app.agents.voice_agent:initiate_outbound_call:981 - Outbound call started call_id=35 sid=CA45caac6b50e46a92f56849b2878dfa2c
+2026-01-07 02:32:32.912 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Katrina M at ALN Medical Management
+2026-01-07 02:32:43.727 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-07 02:32:43.754 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for ALN Medical Management
+2026-01-07 02:32:43.759 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-07 02:32:43.790 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Katrina_M_ALN_Medical_Management_linkedin_pack_call_35_20260106_210243.pdf
+2026-01-07 02:33:03.248 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/36/webhook
+2026-01-07 02:33:04.327 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CAf6dcb3cae13140331078512ae01e397b, status=queued
+2026-01-07 02:33:04.341 | INFO     | app.agents.voice_agent:initiate_outbound_call:981 - Outbound call started call_id=36 sid=CAf6dcb3cae13140331078512ae01e397b
+2026-01-07 02:33:04.958 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=35, lead_id=10
+2026-01-07 02:38:32.005 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Katrina M at ALN Medical Management
+2026-01-07 02:38:43.569 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-07 02:38:43.599 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for ALN Medical Management
+2026-01-07 02:38:43.609 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-07 02:38:43.639 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Katrina_M_ALN_Medical_Management_linkedin_pack_call_36_20260106_210843.pdf
+2026-01-07 02:38:58.049 | INFO     | app.agents.email_agent:generate_and_store_sequence:111 - Created 3 email drafts for call_id=36, lead_id=10

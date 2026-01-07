@@ -1,0 +1,4 @@
+2026-01-06 15:24:07.073 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/21/webhook
+2026-01-06 15:24:08.017 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA3df9074c51ea5c70ba1da41a8404b825, status=queued
+2026-01-06 15:24:32.039 | ERROR    | app.services.openai_service:tts_to_file:184 - OpenAI TTS error: 'Speech' object has no attribute 'with_streaming_response'
+2026-01-06 15:25:05.040 | ERROR    | app.services.openai_service:tts_to_file:184 - OpenAI TTS error: 'Speech' object has no attribute 'with_streaming_response'

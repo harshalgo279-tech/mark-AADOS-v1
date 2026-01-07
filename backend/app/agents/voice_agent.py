@@ -33,6 +33,7 @@ from app.utils.logger import logger
 from app.utils.latency_tracker import LatencyTracker
 from app.utils.response_cache import get_response_cache
 from app.utils.quick_responses import try_quick_response
+from app.utils.quality_tracker import get_quality_tracker
 
 try:
     from twilio.twiml.voice_response import VoiceResponse, Gather
@@ -1211,10 +1212,12 @@ class VoiceAgent:
 
         # Try quick response first (deterministic, no API call)
         tracker.mark("llm_start")
+        response_type = "llm"  # Default
         quick_reply = try_quick_response(int(speak_state.value), user_input, lead.name)
 
         if quick_reply:
             reply = quick_reply
+            response_type = "quick"
         else:
             # Check response cache before calling LLM (latency optimization)
             cache = get_response_cache()
@@ -1222,6 +1225,7 @@ class VoiceAgent:
 
             if cached_reply:
                 reply = cached_reply
+                response_type = "cached"
                 logger.info(f"[CACHE] Using cached response for state={speak_state.value} lead_id={call.lead_id}")
             else:
                 # Smart state-specific timeouts: discovery states need more time, simple states need less
@@ -1293,4 +1297,18 @@ class VoiceAgent:
 
         self.db.commit()
         tracker.log_metrics()
+
+        # Track quality metrics for this response
+        quality_tracker = get_quality_tracker()
+        quality_metrics = quality_tracker.analyze_response(
+            response_text=reply_clean,
+            response_type=response_type,
+            user_input=user_input,
+        )
+
+        # Check for quality alerts
+        alert = quality_tracker.check_quality_alert(baseline_score=75.0)
+        if alert and alert["alert"]:
+            logger.warning(f"[QUALITY_ALERT] {alert['message']} | {alert['recommendation']}")
+
         return reply_clean

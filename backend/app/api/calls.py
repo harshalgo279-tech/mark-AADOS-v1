@@ -22,6 +22,7 @@ from app.models.lead import Lead
 from app.models.transcript import Transcript
 from app.utils.logger import logger
 from app.utils.response_cache import get_response_cache
+from app.utils.quality_tracker import get_quality_tracker
 
 from app.agents.voice_agent import VoiceAgent
 
@@ -510,10 +511,15 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
             agent_audio_url=agent_audio_url,
         )
 
-        # Log total turn latency and cache stats
+        # Log total turn latency, cache stats, and quality metrics
         turn_elapsed = (time.time() - turn_start) * 1000
         cache_stats = get_response_cache().get_stats()
-        logger.info(f"[TELEMETRY] Turn complete in {turn_elapsed:.2f}ms | Cache stats: {cache_stats}")
+        quality_report = get_quality_tracker().get_quality_report()
+        quality_status = quality_report.get("quality_status", "unknown")
+        logger.info(
+            f"[TELEMETRY] Turn complete in {turn_elapsed:.2f}ms | "
+            f"Cache: {cache_stats} | Quality: {quality_status}"
+        )
 
         return Response(content=twiml, media_type="application/xml")
 
@@ -591,6 +597,17 @@ async def twilio_recording(call_id: int, request: Request, db: Session = Depends
     except Exception as e:
         logger.error(f"Recording webhook error: {str(e)}")
         return {"ok": False}
+
+
+@router.get("/quality/metrics")
+async def get_quality_metrics():
+    """Get quality metrics report for all calls."""
+    quality_tracker = get_quality_tracker()
+    report = quality_tracker.get_quality_report()
+    return {
+        "status": "success",
+        "data": report,
+    }
 
 
 @router.post("/{call_id}/analyze")

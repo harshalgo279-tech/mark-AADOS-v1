@@ -1,0 +1,12 @@
+# Project-level ignores
+nul
+/.env
+backend/.env
+backend/logs/
+backend/storage/tts/
+__pycache__/
+*.pyc
+*.log
+/.vscode/
+/.idea/
+node_modules/

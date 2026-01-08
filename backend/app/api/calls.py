@@ -27,7 +27,7 @@ from app.utils.quality_tracker import get_quality_tracker
 from app.agents.voice_agent import VoiceAgent
 
 try:
-    from app.agents.data_packet_agent import DataPacketAgent
+    from app.models.data_packet import DataPacket
 except Exception:
     DataPacketAgent = None  # type: ignore
 
@@ -472,6 +472,12 @@ async def twilio_webhook(call_id: int, request: Request, db: Session = Depends(g
 
 @router.post("/{call_id}/webhook/turn")
 async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_db)):
+    """
+    Handle conversation turn with latency optimizations:
+    - Fire-and-forget WebSocket broadcasts
+    - Single batched DB commit at end
+    - Background transcript upsert
+    """
     import time
     turn_start = time.time()
 
@@ -486,8 +492,10 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
         agent = VoiceAgent(db)
 
         if user_speech:
-            agent.append_to_call_transcript(call, speaker="LEAD", text=user_speech)
-            await manager.broadcast({
+            # Append transcript without commit (batch at end)
+            agent.append_to_call_transcript(call, speaker="LEAD", text=user_speech, commit=False)
+            # Fire-and-forget broadcast (non-blocking)
+            manager.broadcast_fire_and_forget({
                 "type": "call_transcript_update",
                 "call_id": call.id,
                 "lead_id": call.lead_id,
@@ -500,10 +508,11 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
         if reply_clean.upper().startswith("AGENT:"):
             reply_clean = reply_clean.split(":", 1)[1].strip()
 
-        agent.append_to_call_transcript(call, speaker="AGENT", text=reply_clean)
-        _upsert_transcript(db, call)
+        # Append transcript without commit (batch at end)
+        agent.append_to_call_transcript(call, speaker="AGENT", text=reply_clean, commit=False)
 
-        await manager.broadcast({
+        # Fire-and-forget broadcast (non-blocking)
+        manager.broadcast_fire_and_forget({
             "type": "call_transcript_update",
             "call_id": call.id,
             "lead_id": call.lead_id,
@@ -518,6 +527,12 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
             agent_text=reply_clean,
             agent_audio_url=agent_audio_url,
         )
+
+        # Single batched DB commit at end of turn (latency optimization)
+        db.commit()
+
+        # Background transcript upsert (non-blocking)
+        asyncio.create_task(_upsert_transcript_background(call.id, call.lead_id, call.twilio_call_sid, call.full_transcript))
 
         # Log total turn latency, cache stats, and quality metrics
         turn_elapsed = (time.time() - turn_start) * 1000
@@ -535,6 +550,36 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
         turn_elapsed = (time.time() - turn_start) * 1000
         logger.error(f"Turn webhook error after {turn_elapsed:.2f}ms: {str(e)}")
         return Response(content="<Response></Response>", media_type="application/xml")
+
+
+async def _upsert_transcript_background(call_id: int, lead_id: int, twilio_call_sid: str, full_transcript: str) -> None:
+    """Background task to upsert transcript without blocking the turn response."""
+    try:
+        db = SessionLocal()
+        try:
+            sid = (twilio_call_sid or "").strip()
+            text = (full_transcript or "").strip()
+            if not sid or not text:
+                return
+
+            existing = db.query(Transcript).filter(Transcript.twilio_call_sid == sid).first()
+            if existing:
+                existing.full_transcript = full_transcript
+                existing.call_id = call_id
+                existing.lead_id = lead_id
+            else:
+                t = Transcript(
+                    twilio_call_sid=sid,
+                    call_id=call_id,
+                    lead_id=lead_id,
+                    full_transcript=full_transcript,
+                )
+                db.add(t)
+            db.commit()
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Background transcript upsert failed: {e}")
 
 
 @router.post("/{call_id}/webhook/status")

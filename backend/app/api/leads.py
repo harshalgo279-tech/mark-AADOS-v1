@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal, get_db
 from app.models.lead import Lead
 from app.models.data_packet import DataPacket
-from app.agents.data_packet_agent import DataPacketAgent
 from app.api.websocket import broadcast_activity
 from app.utils.normalize import normalize_industry
 from app.services.bd_notification_service import BDNotificationService
@@ -132,7 +131,7 @@ def _generate_one_packet_background(lead_id: int):
         if exists:
             return
 
-        agent = DataPacketAgent(db)
+        agent = DataPacket(db)
         packet = _run_async(agent.create_data_packet(lead))
 
         # Notify BD when a new packet was created (best-effort)

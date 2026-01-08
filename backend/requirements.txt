@@ -52,6 +52,9 @@ openpyxl==3.1.2
 # Logging
 loguru==0.7.2
 
+# Async File I/O (latency optimization)
+aiofiles==23.2.1
+
 # Background Tasks
 #celery==5.3.4
 #redis==5.0.1

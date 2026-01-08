@@ -4,7 +4,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.data_packet import DataPacket
 from app.models.lead import Lead
-from app.agents.data_packet_agent import DataPacketAgent
+
+try:
+    from app.models.data_packet import DataPacket
+except Exception:
+    DataPacketAgent = None
 
 router = APIRouter(
     prefix="/api/data-packet",
@@ -57,6 +61,9 @@ async def generate_data_packet(lead_id: int, db: Session = Depends(get_db)):
 
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
+
+    if DataPacketAgent is None:
+        raise HTTPException(status_code=500, detail="DataPacketAgent not available")
 
     agent = DataPacketAgent(db)
     packet = await agent.create_data_packet(lead)

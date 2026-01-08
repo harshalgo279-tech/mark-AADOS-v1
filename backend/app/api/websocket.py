@@ -1,6 +1,12 @@
 # backend/app/api/websocket.py
+"""
+WebSocket manager with latency optimizations:
+- Fire-and-forget broadcasts (non-blocking)
+- Background task for slow clients
+"""
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Set, Dict, Any
+import asyncio
 import json
 import logging
 from datetime import datetime
@@ -24,6 +30,10 @@ class ConnectionManager:
         logger.info(f"🔌 WebSocket disconnected. Total connections: {len(self.active_connections)}")
 
     async def broadcast(self, message: Dict[str, Any]) -> None:
+        """
+        Broadcast message to all connected clients.
+        Uses fire-and-forget for non-blocking operation in critical paths.
+        """
         if not self.active_connections:
             return
 
@@ -37,6 +47,22 @@ class ConnectionManager:
 
         for conn in disconnected:
             self.active_connections.discard(conn)
+
+    def broadcast_fire_and_forget(self, message: Dict[str, Any]) -> None:
+        """
+        Non-blocking broadcast - schedules broadcast as background task.
+        Use this in latency-critical paths to avoid waiting for slow clients.
+        """
+        if not self.active_connections:
+            return
+        asyncio.create_task(self._broadcast_background(message))
+
+    async def _broadcast_background(self, message: Dict[str, Any]) -> None:
+        """Background broadcast with error handling."""
+        try:
+            await self.broadcast(message)
+        except Exception as e:
+            logger.error(f"❌ Background broadcast error: {str(e)}")
 
 
 manager = ConnectionManager()

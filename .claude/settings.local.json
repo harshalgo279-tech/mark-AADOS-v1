@@ -7,7 +7,17 @@
       "Skill(ralph-loop:ralph-loop)",
       "Skill(ralph-loop:help)",
       "Bash(dir \"C:\\\\Users\\\\Vaishnavi M\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\ralph-loop\" /s /b)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(winget install:*)",
+      "Bash(\"/c/Program Files/jq/jq.exe\" --version)",
+      "Bash(jq:*)",
+      "Bash(where.exe:*)",
+      "Bash(\"/c/Users/Vaishnavi M/AppData/Local/Microsoft/WinGet/Packages/jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe/jq.exe\" --version)",
+      "Bash(ln:*)",
+      "Bash(cat:*)",
+      "Bash(python test_optimizations.py)"
     ]
   }
 }

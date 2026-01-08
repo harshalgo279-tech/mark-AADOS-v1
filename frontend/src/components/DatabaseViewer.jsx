@@ -31,6 +31,20 @@ const DatabaseViewer = ({ onClose }) => {
     [rows]
   );
 
+  const tableStyle = {
+    width: "100%",
+    tableLayout: "auto",
+    borderCollapse: "collapse",
+  };
+
+  const cellStyle = {
+    whiteSpace: "normal",
+    wordBreak: "normal",
+    overflowWrap: "break-word",
+    padding: "8px 10px",
+    verticalAlign: "top",
+  };
+
   const fetchTables = async () => {
     setLoadingTables(true);
     setError("");
@@ -236,24 +250,30 @@ const DatabaseViewer = ({ onClose }) => {
 
                 <div style={{ height: 10 }} />
 
-                <div className="table-wrap" style={{ flex: 1 }}>
-                  <table className="table">
+                <div className="table-wrap" style={{ flex: 1, overflow: "auto", minWidth: 600 }}>
+                  <table className="table" style={tableStyle}>
                     <thead>
                       <tr>
-                        {columns.map(c => <th key={c}>{c}</th>)}
+                        {columns.map((c) => (
+                          <th key={c} style={cellStyle}>
+                            {c}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
 
                     <tbody>
                       {visibleRows.length === 0 ? (
                         <tr>
-                          <td colSpan={columns.length}>No rows in table.</td>
+                          <td colSpan={columns.length} style={cellStyle}>
+                            No rows in table.
+                          </td>
                         </tr>
                       ) : (
                         visibleRows.map((r, i) => (
                           <tr key={i}>
-                            {columns.map(c => (
-                              <td key={c}>
+                            {columns.map((c) => (
+                              <td key={c} style={cellStyle}>
                                 {r?.[c] == null ? "" : String(r[c])}
                               </td>
                             ))}

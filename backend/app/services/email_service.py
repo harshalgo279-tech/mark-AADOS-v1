@@ -14,6 +14,7 @@ except Exception:
     aiosmtplib = None  # type: ignore
 
 
+
 class EmailService:
     async def send_email(
         self,

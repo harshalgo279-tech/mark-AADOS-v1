@@ -1,0 +1,15 @@
+2026-01-08 16:14:24.682 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/43/webhook
+2026-01-08 16:14:26.425 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CAbb3e47fd554a6875528667f8ba915df4, status=queued
+2026-01-08 16:14:26.444 | INFO     | app.agents.voice_agent:initiate_outbound_call:1020 - Outbound call started call_id=43 sid=CAbb3e47fd554a6875528667f8ba915df4
+2026-01-08 16:14:39.253 | INFO     | app.agents.voice_agent:tts_audio_url:573 - [LATENCY] TTS generation for call_id=43: 0.69ms
+2026-01-08 16:15:02.376 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 4637.60ms (model=gpt-4o-mini)
+2026-01-08 16:15:03.309 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Katrina M at ALN Medical Management
+2026-01-08 16:15:13.436 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 10125.48ms (model=gpt-4o-mini)
+2026-01-08 16:15:13.437 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-08 16:15:13.460 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for ALN Medical Management
+2026-01-08 16:15:13.466 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-08 16:15:13.504 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Katrina_M_ALN_Medical_Management_linkedin_pack_call_43_20260108_104513.pdf
+2026-01-08 16:15:20.706 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 6250.31ms (model=gpt-4o-mini)
+2026-01-08 16:15:26.503 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 5760.34ms (model=gpt-4o-mini)
+2026-01-08 16:15:31.589 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 5057.21ms (model=gpt-4o-mini)
+2026-01-08 16:15:31.613 | INFO     | app.agents.email_agent:generate_and_store_sequence:97 - Created 3 email drafts for call_id=43, lead_id=11

@@ -1,9 +1,9 @@
 ---
 active: true
 iteration: 1
-max_iterations: 10
+max_iterations: 5
 completion_promise: "DONE"
-started_at: "2026-01-07T14:37:44Z"
+started_at: "2026-01-08T10:04:57Z"
 ---
 
-Audit and optimize the codebase to reduce end-to-end latency between user speech input and OpenAI model response
+Enhance the UI and change the text font style and colour to something better and visually appealing

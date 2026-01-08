@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.models.call import Call
 from app.models.data_packet import DataPacket
 from app.models.email import Email
@@ -27,8 +28,9 @@ class EmailAgent:
     Existing behavior:
     ✅ Creates rows in `emails` table (status="draft")
 
-    New behavior (added feature, gated by pipeline flag):
+    Added behavior (feature, gated):
     ✅ Can send the first draft email to the lead via EmailService (Gmail SMTP)
+       BUT ONLY AFTER THE CALL IS COMPLETED (guarded here).
     """
 
     def __init__(self, db: Session):
@@ -37,7 +39,7 @@ class EmailAgent:
         self.email_service = EmailService()
 
     # ---------------------------
-    # Public API: Draft generation (unchanged behavior)
+    # Public API: Draft generation (UNCHANGED behavior)
     # ---------------------------
 
     async def generate_and_store_sequence(
@@ -56,7 +58,9 @@ class EmailAgent:
             .all()
         )
         if existing:
-            logger.info(f"Email drafts already exist for call_id={call.id}, returning existing ({len(existing)})")
+            logger.info(
+                f"Email drafts already exist for call_id={call.id}, returning existing ({len(existing)})"
+            )
             return existing
 
         data_packet = self.db.query(DataPacket).filter(DataPacket.lead_id == lead.id).first()
@@ -98,7 +102,7 @@ class EmailAgent:
         return created
 
     # ---------------------------
-    # New feature: Sending (Gmail SMTP) — does NOT change draft generation
+    # New feature: Sending (Gmail SMTP) — DOES NOT CHANGE draft generation
     # ---------------------------
 
     async def send_email_by_id(self, email_id: int) -> Dict[str, Any]:
@@ -125,8 +129,9 @@ class EmailAgent:
             to_name=(lead.name or "there"),
             subject=(email.subject or "").strip(),
             html_body=(email.body_html or "").strip(),
-            text_body=(email.body_text or "").strip() or self._html_to_text_fallback(email.body_html or ""),
-            attachments=None,  # explicitly not attaching anything per your requirement
+            text_body=(email.body_text or "").strip()
+            or self._html_to_text_fallback(email.body_html or ""),
+            attachments=None,  # explicitly not attaching anything
         )
 
         if ok:
@@ -141,9 +146,27 @@ class EmailAgent:
 
     async def send_first_draft_for_call(self, call_id: int) -> Dict[str, Any]:
         """
-        Sends ONLY the first (earliest) draft email for a call if it's still in draft status.
-        This is what the post-call pipeline should call.
+        Pipeline entrypoint:
+        Sends ONLY the first (earliest) draft email for a call if:
+          1) AUTO-SEND flag is enabled
+          2) the call is completed
+          3) the first email is still draft
         """
+        # ---- feature gate (pipeline flag) ----
+        # Keep naming flexible to match your settings style.
+        # Enable by setting EMAIL_AUTO_SEND_FIRST_DRAFT=true (or equivalent).
+        auto_send_enabled = bool(getattr(settings, "EMAIL_AUTO_SEND_FIRST_DRAFT", False))
+        if not auto_send_enabled:
+            return {"success": True, "skipped": True, "reason": "auto_send_flag_disabled"}
+
+        call = self.db.query(Call).filter(Call.id == call_id).first()
+        if not call:
+            return {"success": False, "error": "Call not found"}
+
+        # ---- HARD GUARD: only after call is completed ----
+        if not self._is_call_completed(call):
+            return {"success": True, "skipped": True, "reason": "call_not_completed"}
+
         email = (
             self.db.query(Email)
             .filter(Email.call_id == call_id)
@@ -159,14 +182,40 @@ class EmailAgent:
 
         return await self.send_email_by_id(email.id)
 
+    # ---------------------------
+    # Helpers
+    # ---------------------------
+
+    def _is_call_completed(self, call: Call) -> bool:
+        """
+        Non-breaking, schema-flexible completion check.
+        Supports common call schemas without requiring you to rename fields.
+        """
+        # boolean flags
+        for attr in ("is_completed", "completed"):
+            if hasattr(call, attr) and bool(getattr(call, attr)):
+                return True
+
+        # timestamps
+        for attr in ("completed_at", "ended_at", "call_ended_at", "end_time"):
+            if hasattr(call, attr) and getattr(call, attr) is not None:
+                return True
+
+        # status string
+        status = (getattr(call, "status", "") or "").strip().lower()
+        if status in {"completed", "complete", "done", "ended", "finished"}:
+            return True
+
+        return False
+
     def _html_to_text_fallback(self, html: str) -> str:
         # very simple fallback; avoids adding dependencies
         if not html:
             return ""
         t = html.replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
         t = t.replace("</p>", "\n\n").replace("<p>", "")
-        # strip remaining tags crudely
         import re
+
         t = re.sub(r"<[^>]+>", "", t)
         return t.strip()
 
@@ -177,7 +226,9 @@ class EmailAgent:
     def _decide_primary_email_type(self, call: Call) -> str:
         if getattr(call, "demo_requested", False):
             return "demo_confirmation"
-        if getattr(call, "follow_up_requested", False) or (getattr(call, "lead_interest_level", "") or "").lower() == "high":
+        if getattr(call, "follow_up_requested", False) or (
+            (getattr(call, "lead_interest_level", "") or "").lower() == "high"
+        ):
             return "follow_up"
         return "nurture"
 
@@ -200,7 +251,9 @@ class EmailAgent:
         email_type: str,
         template_name: str,
     ) -> Dict[str, Any]:
-        prompt = self._build_prompt(lead, data_packet, call, email_type=email_type, template_name=template_name)
+        prompt = self._build_prompt(
+            lead, data_packet, call, email_type=email_type, template_name=template_name
+        )
 
         response = await self.openai.generate_completion(
             prompt=prompt,
@@ -213,10 +266,15 @@ class EmailAgent:
         except json.JSONDecodeError:
             first_name = (lead.name or "there").split()[0]
             subj = f"Following up — {lead.company or 'Algonox'}"
-            body = response.strip() or f"Hi {first_name},\n\nFollowing up on our conversation.\n\nBest,\nHarsha"
+            body = (
+                response.strip()
+                or f"Hi {first_name},\n\nFollowing up on our conversation.\n\nBest,\nHarsha"
+            )
             data = {
                 "subject": subj,
-                "body_html": "<p>" + "</p><p>".join([line for line in body.split("\n") if line.strip()]) + "</p>",
+                "body_html": "<p>"
+                + "</p><p>".join([line for line in body.split("\n") if line.strip()])
+                + "</p>",
                 "body_text": body,
             }
 
@@ -249,59 +307,47 @@ class EmailAgent:
 
         instructions = ""
         if email_type == "demo_confirmation":
-            instructions = """
-Write a professional follow-up email confirming a demo.
+            instructions = """Write a professional follow-up email confirming a demo.
 - Thank them
 - Confirm next steps
 - Recap the most relevant use case(s) discussed
 - Add a clear scheduling CTA (suggest 2 time slots; no links needed)
 Tone: professional, upbeat, concise
-Length: 150-220 words
-"""
+Length: 150-220 words"""
         elif email_type == "follow_up":
-            instructions = """
-Write a helpful, consultative follow-up email where interest was present but no hard commitment.
+            instructions = """Write a helpful, consultative follow-up email where interest was present but no hard commitment.
 - Thank them
 - Reference 1–2 key points from the call summary
 - Address objections/questions briefly
 - Propose a small next step (15-min call / quick walkthrough)
 Tone: consultative, not pushy
-Length: 180-260 words
-"""
+Length: 180-260 words"""
         elif email_type == "nurture":
-            instructions = """
-Write a brief nurture email for a low-interest call.
+            instructions = """Write a brief nurture email for a low-interest call.
 - Thank them
 - Acknowledge timing may not be right
 - Offer to stay in touch
 - End with a low-friction question
 Tone: respectful, light
-Length: 100-160 words
-"""
+Length: 100-160 words"""
         elif email_type == "follow_up_1":
-            instructions = """
-Write Follow-Up #1 (if no reply).
+            instructions = """Write Follow-Up #1 (if no reply).
 - 3–5 short sentences
 - Add ONE new piece of value (mini case-study, metric, or insight)
 - End with a simple yes/no question
 Tone: friendly, helpful
-Length: 90-140 words
-"""
+Length: 90-140 words"""
         elif email_type == "follow_up_2":
-            instructions = """
-Write Follow-Up #2 (final follow-up).
+            instructions = """Write Follow-Up #2 (final follow-up).
 - Respect their time
 - Offer to close the loop or redirect to the right person
 - End with one simple question
 Tone: polite, minimal
-Length: 60-110 words
-"""
+Length: 60-110 words"""
         else:
-            instructions = """
-Write a concise follow-up email.
+            instructions = """Write a concise follow-up email.
 - Thank them
-- End with one simple question
-"""
+- End with one simple question"""
 
         return f"""
 You are an SDR writing outbound follow-up emails for Algonox.
@@ -322,19 +368,14 @@ CALL OUTCOME:
 CALL SUMMARY (use this for personalization; do NOT paste the full transcript):
 {summary or "[No summary available]"}
 
-OBJECTIONS (if any):
-{json.dumps(objections) if objections else "[]"}
-
-QUESTIONS ASKED (if any):
-{json.dumps(questions) if questions else "[]"}
-
+OBJECTIONS (if any): {json.dumps(objections) if objections else "[]"}
+QUESTIONS ASKED (if any): {json.dumps(questions) if questions else "[]"}
 USE CASES AVAILABLE:
 1) {data_packet.use_case_1_title} — {data_packet.use_case_1_impact}
 2) {data_packet.use_case_2_title} — {data_packet.use_case_2_impact}
 3) {data_packet.use_case_3_title} — {data_packet.use_case_3_impact}
 
-USE CASES DISCUSSED (optional):
-{json.dumps(use_cases_discussed) if use_cases_discussed else "[]"}
+USE CASES DISCUSSED (optional): {json.dumps(use_cases_discussed) if use_cases_discussed else "[]"}
 
 EMAIL TEMPLATE:
 - template_name: {template_name}
@@ -355,4 +396,4 @@ Return JSON only:
   "body_html": "...",
   "body_text": "..."
 }}
-""".strip()
+        """.strip()

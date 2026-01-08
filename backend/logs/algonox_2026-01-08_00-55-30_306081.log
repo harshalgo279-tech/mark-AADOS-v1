@@ -1,0 +1,33 @@
+2026-01-08 01:00:45.223 | INFO     | app.services.twilio_service:make_call:86 - Twilio make_call -> to=+919989033968, twiml_url=https://ungraceful-annie-nonpneumatically.ngrok-free.dev/api/calls/42/webhook
+2026-01-08 01:00:46.075 | INFO     | app.services.twilio_service:make_call:111 - Twilio call created: sid=CA6fbd61c8ff3fd3283a08c8d7c03337e6, status=queued
+2026-01-08 01:00:46.108 | INFO     | app.agents.voice_agent:initiate_outbound_call:1020 - Outbound call started call_id=42 sid=CA6fbd61c8ff3fd3283a08c8d7c03337e6
+2026-01-08 01:00:55.494 | INFO     | app.agents.voice_agent:tts_audio_url:573 - [LATENCY] TTS generation for call_id=42: 0.34ms
+2026-01-08 01:01:05.722 | INFO     | app.agents.voice_agent:tts_audio_url:573 - [LATENCY] TTS generation for call_id=42: 0.74ms
+2026-01-08 01:01:05.724 | INFO     | app.api.calls:twilio_turn:519 - [TELEMETRY] Turn complete in 896.57ms | Cache: {'hits': 0, 'misses': 0, 'total': 0, 'hit_rate_percent': 0, 'cache_size': 0} | Quality: unknown
+2026-01-08 01:01:14.564 | INFO     | app.utils.quick_responses:log_quick_response_usage:79 - [QUICK_RESPONSE] state=1 | input_len=33 | response_len=145 | Skipped LLM call (latency saving: ~1.5-2s)
+2026-01-08 01:01:14.570 | INFO     | app.utils.latency_tracker:log_metrics:65 - [LATENCY] {'call_id': 42, 'total_ms': 8.17, 'prompt_ms': 0.08, 'llm_ms': 0.51, 'tts_ms': None}
+2026-01-08 01:01:14.571 | INFO     | app.utils.quality_tracker:analyze_response:118 - [QUALITY] quick response: overall_score=71.0/100
+2026-01-08 01:01:14.571 | WARNING  | app.agents.voice_agent:generate_reply:1312 - [QUALITY_ALERT] Quality degraded by 4.0 points (baseline: 75.0, current: 71.0) | Review quick response templates and consider increasing LLM usage
+2026-01-08 01:01:17.665 | INFO     | app.services.openai_service:tts_to_file:209 - [LATENCY] OpenAI TTS API call: 3073.35ms (voice=cedar)
+2026-01-08 01:01:17.667 | INFO     | app.agents.voice_agent:tts_audio_url:573 - [LATENCY] TTS generation for call_id=42: 3078.18ms
+2026-01-08 01:01:17.669 | INFO     | app.api.calls:twilio_turn:519 - [TELEMETRY] Turn complete in 3955.23ms | Cache: {'hits': 0, 'misses': 0, 'total': 0, 'hit_rate_percent': 0, 'cache_size': 0} | Quality: acceptable
+2026-01-08 01:01:32.589 | INFO     | app.utils.quick_responses:log_quick_response_usage:79 - [QUICK_RESPONSE] state=1 | input_len=10 | response_len=48 | Skipped LLM call (latency saving: ~1.5-2s)
+2026-01-08 01:01:32.594 | INFO     | app.utils.latency_tracker:log_metrics:65 - [LATENCY] {'call_id': 42, 'total_ms': 7.14, 'prompt_ms': 0.05, 'llm_ms': 0.51, 'tts_ms': None}
+2026-01-08 01:01:32.594 | INFO     | app.utils.quality_tracker:analyze_response:118 - [QUALITY] quick response: overall_score=55.5/100
+2026-01-08 01:01:32.595 | WARNING  | app.agents.voice_agent:generate_reply:1312 - [QUALITY_ALERT] Quality degraded by 11.8 points (baseline: 75.0, current: 63.2) | Review quick response templates and consider increasing LLM usage
+2026-01-08 01:01:34.318 | INFO     | app.services.openai_service:tts_to_file:209 - [LATENCY] OpenAI TTS API call: 1703.84ms (voice=cedar)
+2026-01-08 01:01:34.320 | INFO     | app.agents.voice_agent:tts_audio_url:573 - [LATENCY] TTS generation for call_id=42: 1708.36ms
+2026-01-08 01:01:34.322 | INFO     | app.api.calls:twilio_turn:519 - [TELEMETRY] Turn complete in 2524.01ms | Cache: {'hits': 0, 'misses': 0, 'total': 0, 'hit_rate_percent': 0, 'cache_size': 0} | Quality: degraded
+2026-01-08 01:01:46.586 | INFO     | app.agents.voice_agent:tts_audio_url:573 - [LATENCY] TTS generation for call_id=42: 0.38ms
+2026-01-08 01:01:46.587 | INFO     | app.api.calls:twilio_turn:519 - [TELEMETRY] Turn complete in 852.63ms | Cache: {'hits': 0, 'misses': 0, 'total': 0, 'hit_rate_percent': 0, 'cache_size': 0} | Quality: degraded
+2026-01-08 01:01:57.371 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 4812.48ms (model=gpt-4o-mini)
+2026-01-08 01:01:57.830 | INFO     | app.agents.linkedin_agent:_generate_and_store:54 - Generating LinkedIn scripts for Katrina M at ALN Medical Management
+2026-01-08 01:02:06.527 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 8696.43ms (model=gpt-4o-mini)
+2026-01-08 01:02:06.528 | ERROR    | app.agents.linkedin_agent:_generate_with_llm:150 - Failed to parse LinkedIn scripts JSON. Using fallback.
+2026-01-08 01:02:06.576 | INFO     | app.agents.linkedin_agent:_generate_and_store:73 - LinkedIn scripts generated for ALN Medical Management
+2026-01-08 01:02:06.585 | INFO     | app.services.pdf_service:__init__:33 - PDFService output_dir set to: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output
+2026-01-08 01:02:06.623 | INFO     | app.services.pdf_service:generate_pdf:94 - PDF generated: C:\Users\Vaishnavi M\OneDrive - estechinfo.com 1\Documents\AADOS\pdf_output\Katrina_M_ALN_Medical_Management_linkedin_pack_call_42_20260107_193206.pdf
+2026-01-08 01:02:13.359 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 6289.33ms (model=gpt-4o-mini)
+2026-01-08 01:02:18.599 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 5202.87ms (model=gpt-4o-mini)
+2026-01-08 01:02:22.359 | INFO     | app.services.openai_service:generate_completion:94 - [LATENCY] OpenAI completion: 3739.25ms (model=gpt-4o-mini)
+2026-01-08 01:02:22.385 | INFO     | app.agents.email_agent:generate_and_store_sequence:97 - Created 3 email drafts for call_id=42, lead_id=11

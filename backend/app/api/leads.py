@@ -16,6 +16,7 @@ from app.models.data_packet import DataPacket
 from app.agents.data_packet_agent import DataPacketAgent
 from app.api.websocket import broadcast_activity
 from app.utils.normalize import normalize_industry
+from app.services.bd_notification_service import BDNotificationService
 
 
 logger = logging.getLogger(__name__)
@@ -132,7 +133,15 @@ def _generate_one_packet_background(lead_id: int):
             return
 
         agent = DataPacketAgent(db)
-        _run_async(agent.create_data_packet(lead))
+        packet = _run_async(agent.create_data_packet(lead))
+
+        # Notify BD when a new packet was created (best-effort)
+        try:
+            if packet:
+                _run_async(BDNotificationService(db).send_notification(packet, lead))
+        except Exception:
+            # don't fail packet creation if BD notification fails
+            logger.exception("BD notification failed for lead_id=%s", lead_id)
 
         logger.info("✅ Data packet created for lead_id=%s", lead_id)
 
@@ -171,8 +180,13 @@ def _generate_packets_background(lead_ids: List[int]):
                 continue
 
             try:
-                _run_async(agent.create_data_packet(lead))
+                packet = _run_async(agent.create_data_packet(lead))
                 logger.info("✅ Packet created lead_id=%s", lead_id)
+                try:
+                    if packet:
+                        _run_async(BDNotificationService(db).send_notification(packet, lead))
+                except Exception:
+                    logger.exception("BD notification failed for lead_id=%s", lead_id)
             except Exception as e:
                 logger.exception("❌ Packet create failed lead_id=%s: %s", lead_id, e)
 

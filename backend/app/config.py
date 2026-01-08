@@ -53,6 +53,8 @@ class Settings:
     SMTP_TLS: bool | None = os.getenv("SMTP_TLS") == "True"
     EMAIL_FROM: str | None = os.getenv("EMAIL_FROM")
     EMAIL_FROM_NAME: str | None = os.getenv("EMAIL_FROM_NAME")
+    # Comma-separated BD recipients, e.g. bd1@example.com,bd2@example.com
+    BD_EMAIL_TO: str | None = os.getenv("BD_EMAIL_TO")
 
 
 settings = Settings()

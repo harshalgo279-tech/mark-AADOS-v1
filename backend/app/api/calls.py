@@ -248,6 +248,14 @@ async def _post_call_pipeline(call_id: int) -> None:
             try:
                 packet = await DataPacketAgent(db).create_data_packet(lead)  # type: ignore
                 await manager.broadcast({"type": "data_packet_generated", "lead_id": lead.id})
+                # Notify BD for packets created during post-call pipeline
+                try:
+                    if packet:
+                        from app.services.bd_notification_service import BDNotificationService
+
+                        await BDNotificationService(db).send_notification(packet, lead)
+                except Exception as e:
+                    logger.exception(f"BD notification failed post-call lead_id={lead.id}: {e}")
             except Exception as e:
                 logger.error(f"Post-call pipeline: data_packet generation failed lead_id={lead.id}: {e}")
 

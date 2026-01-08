@@ -4,6 +4,7 @@ from __future__ import annotations
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import List, Optional
+from email.utils import formataddr
 
 from app.config import settings
 from app.utils.logger import logger
@@ -61,8 +62,9 @@ class EmailService:
         # Build MIME message
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"{from_name} <{from_email}>"
-        msg["To"] = f"{(to_name or '').strip() or 'there'} <{to_email}>"
+        msg["From"] = formataddr((from_name, from_email))
+        msg["To"] = formataddr(((to_name or "").strip() or "there", to_email))
+
 
         # Attach plaintext first, then HTML
         if text_body:

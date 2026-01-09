@@ -15,6 +15,7 @@ from app.api import (
     manual_call,
     websocket,
     analyst,   # ✅ NEW
+    realtime,
 )
 
 logging.basicConfig(
@@ -98,6 +99,7 @@ app.include_router(database.router)
 app.include_router(manual_call.router)
 app.include_router(websocket.router)
 app.include_router(analyst.router)  # ✅ NEW
+app.include_router(realtime.router, prefix="/api/realtime", tags=["realtime"])
 
 
 @app.get("/")

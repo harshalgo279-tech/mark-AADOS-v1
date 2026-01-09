@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Users, FileText, Phone, Mail } from "lucide-react";
 import ManualCallForm from "./components/ManualCallForm";
 import DatabaseViewer from "./components/DatabaseViewer";
+import RealtimeVoiceChat from "./components/RealtimeVoiceChat";
 import WebSocketManager from "./utils/websocket";
 import api from "./utils/api";
 import TranscriptPage from "./components/TranscriptPage";
@@ -233,6 +234,9 @@ const App = () => {
             <button className="btn" onClick={() => setView("manual-call")}>
               MANUAL CALL
             </button>
+            <button className="btn" onClick={() => setView("realtime-voice")}>
+              REALTIME VOICE
+            </button>
             <button className="btn" onClick={() => setView("database")}>
               DATABASE
             </button>
@@ -362,6 +366,7 @@ const App = () => {
 
         {/* MODALS */}
         {view === "manual-call" && <ManualCallForm onClose={() => setView("dashboard")} />}
+        {view === "realtime-voice" && <RealtimeVoiceChat onClose={() => setView("dashboard")} />}
         {view === "database" && <DatabaseViewer onClose={() => setView("dashboard")} />}
       </div>
     </>

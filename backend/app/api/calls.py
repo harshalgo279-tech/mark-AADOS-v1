@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import os
 import re
 from datetime import datetime
 from typing import Any, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
@@ -25,6 +26,10 @@ from app.utils.response_cache import get_response_cache
 from app.utils.quality_tracker import get_quality_tracker
 
 from app.agents.voice_agent import VoiceAgent
+
+# NEW: realtime relay dependencies
+from app.services.openai_realtime_service import OpenAIRealtimeService
+from app.utils.audio_transcode import ulaw8k_to_pcm16_24k
 
 try:
     from app.models.data_packet import DataPacket
@@ -55,6 +60,14 @@ try:
     from app.agents.email_agent import EmailAgent
 except Exception:
     EmailAgent = None  # type: ignore
+
+# NEW: TwiML Connect/Stream (Media Streams)
+try:
+    from twilio.twiml.voice_response import VoiceResponse, Connect, Stream
+except Exception:
+    VoiceResponse = None  # type: ignore
+    Connect = None  # type: ignore
+    Stream = None  # type: ignore
 
 
 router = APIRouter(prefix="/api/calls", tags=["calls"])
@@ -248,11 +261,9 @@ async def _post_call_pipeline(call_id: int) -> None:
             try:
                 packet = await DataPacketAgent(db).create_data_packet(lead)  # type: ignore
                 await manager.broadcast({"type": "data_packet_generated", "lead_id": lead.id})
-                # Notify BD for packets created during post-call pipeline
                 try:
                     if packet:
                         from app.services.bd_notification_service import BDNotificationService
-
                         await BDNotificationService(db).send_notification(packet, lead)
                 except Exception as e:
                     logger.exception(f"BD notification failed post-call lead_id={lead.id}: {e}")
@@ -355,6 +366,33 @@ async def _post_call_pipeline(call_id: int) -> None:
             pass
 
 
+def _public_ws_base_url() -> str:
+    """
+    TWILIO_WEBHOOK_URL is typically https://yourdomain
+    Twilio Media Streams requires wss://
+    """
+    base = (getattr(settings, "TWILIO_WEBHOOK_URL", "") or "").strip().rstrip("/")
+    if not base:
+        return ""
+    if base.startswith("https://"):
+        return "wss://" + base[len("https://"):]
+    if base.startswith("http://"):
+        return "ws://" + base[len("http://"):]
+    return base
+
+
+def _realtime_enabled_for_call(call: Call) -> bool:
+    # Feature flag via env/settings
+    enabled = bool(getattr(settings, "OPENAI_REALTIME_ENABLED", False))
+    # Optional per-call override if you ever add a column/field
+    if hasattr(call, "use_realtime") and getattr(call, "use_realtime", None) is not None:
+        try:
+            return bool(getattr(call, "use_realtime"))
+        except Exception:
+            pass
+    return enabled
+
+
 @router.get("", response_model=List[CallResponse])
 @router.get("/", response_model=List[CallResponse])
 async def list_calls(
@@ -419,7 +457,7 @@ async def get_call_transcript(call_id: int, db: Session = Depends(get_db)):
 
 
 # ---------------------------
-# Serve OpenAI TTS mp3 for Twilio <Play>
+# Serve OpenAI TTS mp3 for Twilio <Play> (legacy gather path)
 # ---------------------------
 @router.get("/{call_id}/tts/{filename}")
 async def serve_tts_audio(call_id: int, filename: str):
@@ -439,6 +477,11 @@ async def serve_tts_audio(call_id: int, filename: str):
 @router.get("/{call_id}/webhook")
 @router.post("/{call_id}/webhook")
 async def twilio_webhook(call_id: int, request: Request, db: Session = Depends(get_db)):
+    """
+    Entry point Twilio hits when call connects.
+    - If OPENAI_REALTIME_ENABLED: return <Connect><Stream> to start Media Streams.
+    - Else: return legacy Gather-based TwiML (your existing flow).
+    """
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         return Response(content="<Response></Response>", media_type="application/xml")
@@ -452,8 +495,27 @@ async def twilio_webhook(call_id: int, request: Request, db: Session = Depends(g
 
         await manager.broadcast({"type": "call_in_progress", "call_id": call_id, "lead_id": call.lead_id})
 
-        agent = VoiceAgent(db)
+        # --- REALTIME PATH ---
+        if _realtime_enabled_for_call(call):
+            if VoiceResponse is None or Connect is None or Stream is None:
+                logger.error("Twilio TwiML library not available for <Connect><Stream> realtime path.")
+                return Response(content="<Response></Response>", media_type="application/xml")
 
+            ws_base = _public_ws_base_url()
+            if not ws_base:
+                logger.error("TWILIO_WEBHOOK_URL missing; cannot build wss URL for Media Streams.")
+                return Response(content="<Response></Response>", media_type="application/xml")
+
+            stream_url = f"{ws_base}/api/calls/{call.id}/ws/twilio-media"
+
+            vr = VoiceResponse()
+            conn = Connect()
+            conn.append(Stream(url=stream_url))
+            vr.append(conn)
+            return Response(content=str(vr), media_type="application/xml")
+
+        # --- LEGACY PATH (UNCHANGED) ---
+        agent = VoiceAgent(db)
         lead = db.query(Lead).filter(Lead.id == call.lead_id).first()
         opener_text = agent._build_opener(lead) if lead else "Hi — this is AADOS calling from Algonox."
         opener_audio_url = await agent.tts_audio_url(call_id=call.id, text=opener_text)
@@ -470,13 +532,215 @@ async def twilio_webhook(call_id: int, request: Request, db: Session = Depends(g
         return Response(content="<Response></Response>", media_type="application/xml")
 
 
+# ---------------------------
+# NEW: Twilio Media Streams WebSocket endpoint (Realtime relay)
+# ---------------------------
+@router.websocket("/{call_id}/ws/twilio-media")
+async def twilio_media_ws(websocket: WebSocket, call_id: int):
+    """
+    Twilio Media Streams sends:
+      - start
+      - media (base64 PCMU 8k)
+      - stop
+    We relay audio to OpenAI Realtime and relay model audio back to Twilio.
+    """
+    await websocket.accept()
+
+    db = SessionLocal()
+    openai_rt: Optional[OpenAIRealtimeService] = None
+    agent: Optional[VoiceAgent] = None
+
+    stream_sid: Optional[str] = None
+    pending_hangup: bool = False
+    response_in_flight: bool = False
+    response_lock = asyncio.Lock()
+
+    try:
+        call = db.query(Call).filter(Call.id == call_id).first()
+        if not call:
+            await websocket.close()
+            return
+
+        agent = VoiceAgent(db)
+        lead = db.query(Lead).filter(Lead.id == call.lead_id).first()
+
+        openai_rt = OpenAIRealtimeService()
+        await openai_rt.connect()
+
+        async def maybe_create_response(instructions: str, request_hangup: bool = False) -> None:
+            nonlocal pending_hangup, response_in_flight
+            if not openai_rt:
+                return
+            async with response_lock:
+                # Avoid flooding multiple response.create calls if one is already in-flight.
+                if response_in_flight:
+                    return
+                response_in_flight = True
+                pending_hangup = pending_hangup or request_hangup
+                await openai_rt.create_response(instructions=instructions)
+
+        async def twilio_to_openai():
+            nonlocal stream_sid
+            assert openai_rt is not None
+
+            while True:
+                raw = await websocket.receive_text()
+                msg = json.loads(raw)
+                ev = msg.get("event")
+
+                if ev == "start":
+                    stream_sid = msg.get("start", {}).get("streamSid")
+                    logger.info(f"[REALTIME] Twilio stream started call_id={call_id} streamSid={stream_sid}")
+
+                    # Kick off opener immediately (no <Play>, model speaks)
+                    if agent and lead:
+                        opener = agent._build_opener(lead)
+                    else:
+                        opener = "Hi — this is AADOS calling from Algonox. Did I catch you at a bad time?"
+
+                    # Ensure transcript contains opener once
+                    if agent and call and opener:
+                        agent.append_to_call_transcript(call, speaker="AGENT", text=opener, commit=True)
+                        manager.broadcast_fire_and_forget({
+                            "type": "call_transcript_update",
+                            "call_id": call.id,
+                            "lead_id": call.lead_id,
+                            "delta": f"AGENT: {opener}",
+                        })
+
+                    opener_instructions = (
+                        "You are a voice sales agent on a phone call. "
+                        "Say the following line verbatim, then stop and listen:\n"
+                        f"{opener}"
+                    )
+                    await maybe_create_response(opener_instructions, request_hangup=False)
+                    continue
+
+                if ev == "media":
+                    payload_b64 = msg.get("media", {}).get("payload", "")
+                    if not payload_b64:
+                        continue
+
+                    ulaw = base64.b64decode(payload_b64)
+                    pcm16_24k = ulaw8k_to_pcm16_24k(ulaw)
+                    await openai_rt.send_audio_pcm16(pcm16_24k)
+                    continue
+
+                if ev == "stop":
+                    logger.info(f"[REALTIME] Twilio stream stopped call_id={call_id} streamSid={stream_sid}")
+                    break
+
+        async def openai_to_twilio():
+            nonlocal pending_hangup, response_in_flight
+            assert openai_rt is not None
+
+            async for event in openai_rt.events():
+                et = (event.get("type") or "").strip()
+
+                # 1) Relay model audio back to Twilio
+                if et in ("response.output_audio.delta", "response.audio.delta"):
+                    if not stream_sid:
+                        continue
+                    delta_b64 = event.get("delta") or event.get("audio") or ""
+                    if not delta_b64:
+                        continue
+
+                    out = {
+                        "event": "media",
+                        "streamSid": stream_sid,
+                        "media": {"payload": delta_b64},
+                    }
+                    await websocket.send_text(json.dumps(out))
+                    continue
+
+                # 2) User transcription from OpenAI (names vary; handle common variants)
+                # We use this to drive your existing state machine.
+                if et in (
+                    "conversation.item.input_audio_transcription.completed",
+                    "input_audio_transcription.completed",
+                    "input_audio.transcription.completed",
+                ):
+                    transcript = (
+                        event.get("transcript")
+                        or event.get("text")
+                        or (event.get("item", {}) or {}).get("transcript")
+                        or ""
+                    ).strip()
+
+                    if not transcript or not agent:
+                        continue
+
+                    # Append LEAD transcript + broadcast
+                    agent.append_to_call_transcript(call, speaker="LEAD", text=transcript, commit=True)
+                    manager.broadcast_fire_and_forget({
+                        "type": "call_transcript_update",
+                        "call_id": call.id,
+                        "lead_id": call.lead_id,
+                        "delta": f"LEAD: {transcript}",
+                    })
+
+                    # Build realtime instructions from your exact routing/state machine
+                    built = agent.build_realtime_instructions(call=call, user_input=transcript)
+                    instructions = built["instructions"]
+                    end_call = bool(built.get("end_call", False))
+
+                    await maybe_create_response(instructions, request_hangup=end_call)
+                    continue
+
+                # 3) Mark response as completed to allow next response.create
+                if et in ("response.completed", "response.done"):
+                    response_in_flight = False
+
+                    # Optional: hang up via Twilio REST if your TwilioService supports it
+                    if pending_hangup and agent and getattr(call, "twilio_call_sid", None):
+                        try:
+                            # Try common method names safely.
+                            sid = (call.twilio_call_sid or "").strip()
+                            if sid:
+                                if hasattr(agent.twilio, "hangup_call"):
+                                    await agent.twilio.hangup_call(sid)  # type: ignore
+                                elif hasattr(agent.twilio, "end_call"):
+                                    await agent.twilio.end_call(sid)  # type: ignore
+                                elif hasattr(agent.twilio, "update_call_status"):
+                                    await agent.twilio.update_call_status(sid, "completed")  # type: ignore
+                        except Exception as e:
+                            logger.warning(f"[REALTIME] hangup attempt failed call_id={call_id}: {e}")
+
+                    continue
+
+        tasks = [
+            asyncio.create_task(twilio_to_openai()),
+            asyncio.create_task(openai_to_twilio()),
+        ]
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+
+        for t in pending:
+            t.cancel()
+
+    except WebSocketDisconnect:
+        logger.info(f"[REALTIME] Twilio WS disconnected call_id={call_id}")
+    except Exception as e:
+        logger.exception(f"[REALTIME] WS error call_id={call_id}: {e}")
+    finally:
+        try:
+            if openai_rt:
+                await openai_rt.close()
+        except Exception:
+            pass
+        try:
+            db.close()
+        except Exception:
+            pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+
 @router.post("/{call_id}/webhook/turn")
 async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_db)):
     """
-    Handle conversation turn with latency optimizations:
-    - Fire-and-forget WebSocket broadcasts
-    - Single batched DB commit at end
-    - Background transcript upsert
+    Legacy Gather pipeline (UNCHANGED).
     """
     import time
     turn_start = time.time()
@@ -492,9 +756,7 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
         agent = VoiceAgent(db)
 
         if user_speech:
-            # Append transcript without commit (batch at end)
             agent.append_to_call_transcript(call, speaker="LEAD", text=user_speech, commit=False)
-            # Fire-and-forget broadcast (non-blocking)
             manager.broadcast_fire_and_forget({
                 "type": "call_transcript_update",
                 "call_id": call.id,
@@ -508,10 +770,8 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
         if reply_clean.upper().startswith("AGENT:"):
             reply_clean = reply_clean.split(":", 1)[1].strip()
 
-        # Append transcript without commit (batch at end)
         agent.append_to_call_transcript(call, speaker="AGENT", text=reply_clean, commit=False)
 
-        # Fire-and-forget broadcast (non-blocking)
         manager.broadcast_fire_and_forget({
             "type": "call_transcript_update",
             "call_id": call.id,
@@ -519,7 +779,6 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
             "delta": f"AGENT: {reply_clean}",
         })
 
-        # ✅ CRITICAL FIX: generate OpenAI TTS and pass as <Play>
         agent_audio_url = await agent.tts_audio_url(call_id=call.id, text=reply_clean)
 
         twiml = agent.build_turn_twiml(
@@ -528,13 +787,9 @@ async def twilio_turn(call_id: int, request: Request, db: Session = Depends(get_
             agent_audio_url=agent_audio_url,
         )
 
-        # Single batched DB commit at end of turn (latency optimization)
         db.commit()
-
-        # Background transcript upsert (non-blocking)
         asyncio.create_task(_upsert_transcript_background(call.id, call.lead_id, call.twilio_call_sid, call.full_transcript))
 
-        # Log total turn latency, cache stats, and quality metrics
         turn_elapsed = (time.time() - turn_start) * 1000
         cache_stats = get_response_cache().get_stats()
         quality_report = get_quality_tracker().get_quality_report()
@@ -654,7 +909,6 @@ async def twilio_recording(call_id: int, request: Request, db: Session = Depends
 
 @router.get("/quality/metrics")
 async def get_quality_metrics():
-    """Get quality metrics report for all calls."""
     quality_tracker = get_quality_tracker()
     report = quality_tracker.get_quality_report()
     return {
@@ -775,7 +1029,7 @@ async def generate_linkedin_pack_pdf(call_id: int, db: Session = Depends(get_db)
         "pdf_path": filepath,
     })
 
-    return {"ok": True, "call_id": call.id, "lead_id": lead.id, "pdf_path": filepath}
+    return {"ok": True, "call_id": call.id, "lead_id": call.lead_id, "pdf_path": filepath}
 
 
 @router.get("/{call_id}/linkedin-pack/pdf")

@@ -1,0 +1,556 @@
+{
+  "summary": {
+    "total": 60,
+    "passed": 60,
+    "failed": 0,
+    "pass_rate": "100.0%",
+    "latency_stats": {
+      "min_ms": 0.0012320518493652345,
+      "max_ms": 420.1703071594238,
+      "avg_ms": 25.05367318028989
+    }
+  },
+  "results": [
+    {
+      "test_id": "T1-01",
+      "test_name": "OpenAIService initialization",
+      "passed": true,
+      "details": "model=gpt-4o-mini, tts_model=gpt-4o-mini-tts",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:10:59.022939"
+    },
+    {
+      "test_id": "T1-02",
+      "test_name": "AsyncClient singleton pattern",
+      "passed": true,
+      "details": "Same instance returned",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:10:59.472278"
+    },
+    {
+      "test_id": "T1-03",
+      "test_name": "HTTP client pool singleton",
+      "passed": true,
+      "details": "Pooled connection ready",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:10:59.903139"
+    },
+    {
+      "test_id": "T1-04",
+      "test_name": "TTS memory cache basic ops",
+      "passed": true,
+      "details": "Get/Set working correctly",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:10:59.903178"
+    },
+    {
+      "test_id": "T1-05",
+      "test_name": "TTS memory cache LRU eviction",
+      "passed": true,
+      "details": "Evicted old=True, Kept recent=True",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:10:59.903210"
+    },
+    {
+      "test_id": "T1-06",
+      "test_name": "Sentence extraction for TTS",
+      "passed": true,
+      "details": "Tested 3 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:00.346550"
+    },
+    {
+      "test_id": "T1-07",
+      "test_name": "TTS cache key consistency",
+      "passed": true,
+      "details": "Same input same key: True, Different input different key: True",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:00.799973"
+    },
+    {
+      "test_id": "T1-08",
+      "test_name": "TTS voice validation set",
+      "passed": true,
+      "details": "Found 10 voices",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:00.799997"
+    },
+    {
+      "test_id": "T1-09",
+      "test_name": "TTS format validation set",
+      "passed": true,
+      "details": "Found 5 formats",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:00.800012"
+    },
+    {
+      "test_id": "T1-10",
+      "test_name": "TTS enabled check",
+      "passed": true,
+      "details": "TTS enabled: True",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:01.244522"
+    },
+    {
+      "test_id": "T1-11",
+      "test_name": "VoiceAgent state machine init",
+      "passed": true,
+      "details": "Initial state: SalesState.STATE_0",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:02.786908"
+    },
+    {
+      "test_id": "T1-12",
+      "test_name": "Intent detection frozensets",
+      "passed": true,
+      "details": "Found 13/13 frozensets",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:02.788261"
+    },
+    {
+      "test_id": "T1-13",
+      "test_name": "Pre-compiled regex patterns",
+      "passed": true,
+      "details": "Found 7/7 patterns",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:02.788289"
+    },
+    {
+      "test_id": "T1-14",
+      "test_name": "No-time intent detection",
+      "passed": true,
+      "details": "Tested 4 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:03.848438"
+    },
+    {
+      "test_id": "T1-15",
+      "test_name": "Hostile intent detection",
+      "passed": true,
+      "details": "Tested 3 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:05.293237"
+    },
+    {
+      "test_id": "T1-16",
+      "test_name": "Permission intent detection",
+      "passed": true,
+      "details": "Granted: True, Denied: True",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:07.146874"
+    },
+    {
+      "test_id": "T1-17",
+      "test_name": "Objection detection with types",
+      "passed": true,
+      "details": "Tested 5 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:08.694446"
+    },
+    {
+      "test_id": "T1-18",
+      "test_name": "Buying signals detection",
+      "passed": true,
+      "details": "Tested 4 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:09.606060"
+    },
+    {
+      "test_id": "T1-19",
+      "test_name": "BANT score calculation",
+      "passed": true,
+      "details": "Overall: 65.0, Tier: warm_lead",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:09.607044"
+    },
+    {
+      "test_id": "T1-20",
+      "test_name": "Speaker label stripping",
+      "passed": true,
+      "details": "Tested 4 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.457616"
+    },
+    {
+      "test_id": "T1-21",
+      "test_name": "Response cache basic ops",
+      "passed": true,
+      "details": "Set/Get working",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.459126"
+    },
+    {
+      "test_id": "T1-22",
+      "test_name": "BLAKE2b vs MD5 speed",
+      "passed": true,
+      "details": "BLAKE2b: 12.32ms, MD5: 10.47ms",
+      "latency_ms": 0.0012320518493652345,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.481961"
+    },
+    {
+      "test_id": "T1-23",
+      "test_name": "Response cache statistics",
+      "passed": true,
+      "details": "Hits: 1, Misses: 1",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.489996"
+    },
+    {
+      "test_id": "T1-24",
+      "test_name": "Quick response STATE_0",
+      "passed": true,
+      "details": "Response: Great. Before we continue \u2014 can you hear me clearl...",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.490329"
+    },
+    {
+      "test_id": "T1-25",
+      "test_name": "Quick response STATE_1",
+      "passed": true,
+      "details": "Response: Perfect. I'll ask one question about your current ...",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.490571"
+    },
+    {
+      "test_id": "T1-26",
+      "test_name": "Quick response STATE_12",
+      "passed": true,
+      "details": "Response: Take care, and have a great day....",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.490792"
+    },
+    {
+      "test_id": "T1-27",
+      "test_name": "Quick response latency",
+      "passed": true,
+      "details": "Avg: 0.197ms, P95: 0.228ms",
+      "latency_ms": 0.19679784774780273,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.510744"
+    },
+    {
+      "test_id": "T1-28",
+      "test_name": "Quick response decision logic",
+      "passed": true,
+      "details": "Tested 5 cases",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.510776"
+    },
+    {
+      "test_id": "T1-29",
+      "test_name": "LatencyTracker basic",
+      "passed": true,
+      "details": "Elapsed: 19.83ms",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.530667"
+    },
+    {
+      "test_id": "T1-30",
+      "test_name": "LatencyTracker summary",
+      "passed": true,
+      "details": "Summary keys: ['call_id', 'total_ms', 'prompt_ms', 'llm_ms', 'tts_ms']",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.530750"
+    },
+    {
+      "test_id": "T1-31",
+      "test_name": "WebSocket manager singleton",
+      "passed": true,
+      "details": "Global manager available",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.958266"
+    },
+    {
+      "test_id": "T1-32",
+      "test_name": "WebSocket fire-and-forget method",
+      "passed": true,
+      "details": "Method available",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.958286"
+    },
+    {
+      "test_id": "T1-33",
+      "test_name": "WebSocket non-blocking broadcast",
+      "passed": true,
+      "details": "Completed in 0.00ms",
+      "latency_ms": 0.0016689300537109375,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.958306"
+    },
+    {
+      "test_id": "T1-34",
+      "test_name": "Audio transcode function",
+      "passed": true,
+      "details": "Output size: 956 bytes",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.961459"
+    },
+    {
+      "test_id": "T1-35",
+      "test_name": "Audio rate conversion 8k->24k",
+      "passed": true,
+      "details": "Input: 160B, Output: 956B",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.961488"
+    },
+    {
+      "test_id": "T1-36",
+      "test_name": "Realtime service initialization",
+      "passed": true,
+      "details": "Model: gpt-4o-realtime-preview, Voice: ash",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.965567"
+    },
+    {
+      "test_id": "T1-37",
+      "test_name": "DB commit batching parameter",
+      "passed": true,
+      "details": "Parameters: ['self', 'call', 'speaker', 'text', 'upsert_transcripts', 'commit']",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.965704"
+    },
+    {
+      "test_id": "T1-38",
+      "test_name": "State prompt templates exist",
+      "passed": true,
+      "details": "Template count: 0",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.965718"
+    },
+    {
+      "test_id": "T1-39",
+      "test_name": "SalesState enum completeness",
+      "passed": true,
+      "details": "States: 13",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.965738"
+    },
+    {
+      "test_id": "T1-40",
+      "test_name": "ConversationPhase enum",
+      "passed": true,
+      "details": "Phases: ['OPENING', 'DISCOVERY', 'PRESENTATION', 'OBJECTION_HANDLING', 'CLOSING']",
+      "latency_ms": null,
+      "category": "unit",
+      "timestamp": "2026-01-09T07:11:10.965757"
+    },
+    {
+      "test_id": "T1-41",
+      "test_name": "Intent detection pipeline",
+      "passed": true,
+      "details": "5 texts \u00d7 5 detections in 0.05ms",
+      "latency_ms": 0.05030632019042969,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:11.833593"
+    },
+    {
+      "test_id": "T1-42",
+      "test_name": "State routing pipeline",
+      "passed": true,
+      "details": "Routing in 0.01ms",
+      "latency_ms": 0.009298324584960938,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:12.738058"
+    },
+    {
+      "test_id": "T1-43",
+      "test_name": "Cache integration",
+      "passed": true,
+      "details": "Quick+Cache in 0.97ms",
+      "latency_ms": 0.9663105010986328,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:12.740287"
+    },
+    {
+      "test_id": "T1-44",
+      "test_name": "TwiML generation",
+      "passed": true,
+      "details": "Generated in 0.24ms, Length: 324",
+      "latency_ms": 0.23937225341796875,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:13.635658"
+    },
+    {
+      "test_id": "T1-45",
+      "test_name": "Turn TwiML generation",
+      "passed": true,
+      "details": "Generated in 0.21ms",
+      "latency_ms": 0.20766258239746094,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:14.477343"
+    },
+    {
+      "test_id": "T1-46",
+      "test_name": "Realtime instructions build",
+      "passed": true,
+      "details": "Built in 10.21ms",
+      "latency_ms": 10.211467742919922,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:15.394044"
+    },
+    {
+      "test_id": "T1-47",
+      "test_name": "Intent to response pipeline",
+      "passed": true,
+      "details": "Completed in 0.38ms",
+      "latency_ms": 0.3819465637207031,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:16.227210"
+    },
+    {
+      "test_id": "T1-48",
+      "test_name": "BANT update pipeline",
+      "passed": true,
+      "details": "B:80 A:85 N:0 T:85 in 0.07ms",
+      "latency_ms": 0.06723403930664062,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:17.112986"
+    },
+    {
+      "test_id": "T1-49",
+      "test_name": "Multiple cache operations",
+      "passed": true,
+      "details": "100 ops in 38.87ms, Hit rate: 100.0%",
+      "latency_ms": 38.865089416503906,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:17.153668"
+    },
+    {
+      "test_id": "T1-50",
+      "test_name": "LatencyTracker full pipeline",
+      "passed": true,
+      "details": "Total: 46.42ms, LLM: 15.64ms",
+      "latency_ms": 46.4167594909668,
+      "category": "integration",
+      "timestamp": "2026-01-09T07:11:17.200164"
+    },
+    {
+      "test_id": "T1-51",
+      "test_name": "Concurrent intent detection (40)",
+      "passed": true,
+      "details": "40 concurrent detections in 0.41ms",
+      "latency_ms": 0.4143714904785156,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:18.118773"
+    },
+    {
+      "test_id": "T1-52",
+      "test_name": "Cache under load (1000 ops)",
+      "passed": true,
+      "details": "1000 ops in 420.17ms, Hit rate: 100.0%",
+      "latency_ms": 420.1703071594238,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:18.539791"
+    },
+    {
+      "test_id": "T1-53",
+      "test_name": "Quick responses under load (300)",
+      "passed": true,
+      "details": "300 responses in 49.62ms",
+      "latency_ms": 49.619436264038086,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:18.589457"
+    },
+    {
+      "test_id": "T1-54",
+      "test_name": "TTS cache key generation (1000)",
+      "passed": true,
+      "details": "1000 keys in 1.41ms",
+      "latency_ms": 1.407623291015625,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:19.002139"
+    },
+    {
+      "test_id": "T1-55",
+      "test_name": "State machine under load (100)",
+      "passed": true,
+      "details": "100 transitions in 0.47ms",
+      "latency_ms": 0.4687309265136719,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:19.870869"
+    },
+    {
+      "test_id": "T1-56",
+      "test_name": "Concurrent TwiML generation (50)",
+      "passed": true,
+      "details": "50 TwiML docs in 5.46ms",
+      "latency_ms": 5.460262298583984,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:20.706922"
+    },
+    {
+      "test_id": "T1-57",
+      "test_name": "Memory cache eviction (500 items)",
+      "passed": true,
+      "details": "500 inserts in 0.35ms, Final size: ~100",
+      "latency_ms": 0.3540515899658203,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:20.708737"
+    },
+    {
+      "test_id": "T1-58",
+      "test_name": "WebSocket broadcast (100)",
+      "passed": true,
+      "details": "100 broadcasts in 0.04ms",
+      "latency_ms": 0.0400543212890625,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:20.708818"
+    },
+    {
+      "test_id": "T1-59",
+      "test_name": "LatencyTracker under load (100)",
+      "passed": true,
+      "details": "100 trackers in 0.26ms",
+      "latency_ms": 0.2567768096923828,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:20.709092"
+    },
+    {
+      "test_id": "T1-60",
+      "test_name": "Full pipeline simulation (50)",
+      "passed": true,
+      "details": "Avg: 0.36ms, P95: 0.43ms",
+      "latency_ms": 0.4277229309082031,
+      "category": "load",
+      "timestamp": "2026-01-09T07:11:21.569288"
+    }
+  ],
+  "timestamp": "2026-01-09T07:11:21.571043"
+}

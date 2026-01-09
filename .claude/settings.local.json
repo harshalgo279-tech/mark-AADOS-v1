@@ -17,7 +17,12 @@
       "Bash(\"/c/Users/Vaishnavi M/AppData/Local/Microsoft/WinGet/Packages/jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe/jq.exe\" --version)",
       "Bash(ln:*)",
       "Bash(cat:*)",
-      "Bash(python test_optimizations.py)"
+      "Bash(python test_optimizations.py)",
+      "Bash(python -m pytest:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)"
     ]
   }
 }

@@ -1,0 +1,829 @@
+{
+  "summary": {
+    "total": 100,
+    "passed": 100,
+    "failed": 0,
+    "pass_rate": "100.0%",
+    "categories": {
+      "dynamic": {
+        "passed": 25,
+        "failed": 0
+      },
+      "contextual": {
+        "passed": 25,
+        "failed": 0
+      },
+      "guardrails": {
+        "passed": 25,
+        "failed": 0
+      },
+      "scenarios": {
+        "passed": 25,
+        "failed": 0
+      }
+    }
+  },
+  "results": [
+    {
+      "test_id": "T2-01",
+      "test_name": "Response generation is dynamic",
+      "passed": true,
+      "details": "State-based responses verified",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:22.565162"
+    },
+    {
+      "test_id": "T2-02",
+      "test_name": "No repetitive templates",
+      "passed": true,
+      "details": "Unique responses: 2/3",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:22.578452"
+    },
+    {
+      "test_id": "T2-03",
+      "test_name": "Context personalization works",
+      "passed": true,
+      "details": "Lead name: Sarah",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:24.016125"
+    },
+    {
+      "test_id": "T2-04",
+      "test_name": "State-aware responses",
+      "passed": true,
+      "details": "States tested: [0, 1, 6, 12]",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:25.077499"
+    },
+    {
+      "test_id": "T2-05",
+      "test_name": "Channel tone adaptation",
+      "passed": true,
+      "details": "Tones: {'cold_call': 'neutral_curious', 'warm_referral': 'warm_confident', 'inbound': 'helpful_direct'}",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:26.128774"
+    },
+    {
+      "test_id": "T2-06",
+      "test_name": "Quick response variation",
+      "passed": true,
+      "details": "Unique responses: 2/5",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:26.131114"
+    },
+    {
+      "test_id": "T2-07",
+      "test_name": "Exit response variation",
+      "passed": true,
+      "details": "Unique exit responses: 3",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:26.132030"
+    },
+    {
+      "test_id": "T2-08",
+      "test_name": "Objection type-specific handling",
+      "passed": true,
+      "details": "Detected correctly: 4/4",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:27.265434"
+    },
+    {
+      "test_id": "T2-09",
+      "test_name": "Response length appropriate",
+      "passed": true,
+      "details": "Word count: 26",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:27.268183"
+    },
+    {
+      "test_id": "T2-10",
+      "test_name": "No bullet points in responses",
+      "passed": true,
+      "details": "Responses are conversational",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:27.269884"
+    },
+    {
+      "test_id": "T2-11",
+      "test_name": "Single question per turn",
+      "passed": true,
+      "details": "Responses with >1 question: 0",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:27.269955"
+    },
+    {
+      "test_id": "T2-12",
+      "test_name": "No re-introduction mid-conversation",
+      "passed": true,
+      "details": "Agent doesn't re-introduce",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:27.270812"
+    },
+    {
+      "test_id": "T2-13",
+      "test_name": "Speech time limit (12s)",
+      "passed": true,
+      "details": "Responses over limit: 0",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:27.272185"
+    },
+    {
+      "test_id": "T2-14",
+      "test_name": "Opener personalization",
+      "passed": true,
+      "details": "Opener: Hi Michael \u2014 this is AADOS calling from Algonox. D...",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:28.643601"
+    },
+    {
+      "test_id": "T2-15",
+      "test_name": "Opener fallback (no name)",
+      "passed": true,
+      "details": "Opener: Hi there \u2014 this is AADOS calling from Algonox. Did...",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:29.577189"
+    },
+    {
+      "test_id": "T2-16",
+      "test_name": "Permission positive flow",
+      "passed": true,
+      "details": "Response engages further",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:29.578519"
+    },
+    {
+      "test_id": "T2-17",
+      "test_name": "Permission negative flow",
+      "passed": true,
+      "details": "Response gracefully exits",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:29.578789"
+    },
+    {
+      "test_id": "T2-18",
+      "test_name": "Who is this response",
+      "passed": true,
+      "details": "Identifies as AADOS",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:29.578998"
+    },
+    {
+      "test_id": "T2-19",
+      "test_name": "Exit responses are grateful",
+      "passed": true,
+      "details": "Contains polite closing",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:29.579198"
+    },
+    {
+      "test_id": "T2-20",
+      "test_name": "Not interested detection",
+      "passed": true,
+      "details": "Detects disinterest correctly",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:30.612591"
+    },
+    {
+      "test_id": "T2-21",
+      "test_name": "No robotic AI prefixes",
+      "passed": true,
+      "details": "Checked 9 responses",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:30.616425"
+    },
+    {
+      "test_id": "T2-22",
+      "test_name": "Conversational contractions",
+      "passed": true,
+      "details": "Natural speech style",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:30.616719"
+    },
+    {
+      "test_id": "T2-23",
+      "test_name": "Transcript tail context",
+      "passed": true,
+      "details": "Tail length: 74",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:31.708913"
+    },
+    {
+      "test_id": "T2-24",
+      "test_name": "State turn tracking",
+      "passed": true,
+      "details": "Turn count: 1",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:33.218547"
+    },
+    {
+      "test_id": "T2-25",
+      "test_name": "Pain point tracking",
+      "passed": true,
+      "details": "Pain points: 1",
+      "category": "dynamic",
+      "timestamp": "2026-01-09T12:58:34.611627"
+    },
+    {
+      "test_id": "T2-26",
+      "test_name": "BANT budget detection",
+      "passed": true,
+      "details": "Budget score: 80",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:35.655020"
+    },
+    {
+      "test_id": "T2-27",
+      "test_name": "BANT authority detection",
+      "passed": true,
+      "details": "Authority score: 85",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:36.683328"
+    },
+    {
+      "test_id": "T2-28",
+      "test_name": "BANT need detection",
+      "passed": true,
+      "details": "Need score: 88",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:37.708563"
+    },
+    {
+      "test_id": "T2-29",
+      "test_name": "BANT timeline detection",
+      "passed": true,
+      "details": "Timeline score: 85",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:38.723398"
+    },
+    {
+      "test_id": "T2-30",
+      "test_name": "BANT tier calculation",
+      "passed": true,
+      "details": "Tier: hot_lead, Overall: 82.5",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:38.724326"
+    },
+    {
+      "test_id": "T2-31",
+      "test_name": "Buying signal tracking",
+      "passed": true,
+      "details": "Signals: ['next_steps_inquiry', 'pricing_inquiry']",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:39.887902"
+    },
+    {
+      "test_id": "T2-32",
+      "test_name": "Objection tracking",
+      "passed": true,
+      "details": "Objections: 1",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:40.797760"
+    },
+    {
+      "test_id": "T2-33",
+      "test_name": "Sentiment history tracking",
+      "passed": true,
+      "details": "History: ['positive', 'neutral']",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:42.125873"
+    },
+    {
+      "test_id": "T2-34",
+      "test_name": "Phase mapping",
+      "passed": true,
+      "details": "Checked 6 state-phase mappings",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:43.218763"
+    },
+    {
+      "test_id": "T2-35",
+      "test_name": "State question tracking",
+      "passed": true,
+      "details": "Questions in state: 2",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:44.455707"
+    },
+    {
+      "test_id": "T2-36",
+      "test_name": "Tech issue detection",
+      "passed": true,
+      "details": "Correct: 4/4",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:45.550294"
+    },
+    {
+      "test_id": "T2-37",
+      "test_name": "Tech issue count tracking",
+      "passed": true,
+      "details": "Tech issues: 1",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:46.682008"
+    },
+    {
+      "test_id": "T2-38",
+      "test_name": "Audio confirmation flow",
+      "passed": true,
+      "details": "Initial state correct",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:48.087812"
+    },
+    {
+      "test_id": "T2-39",
+      "test_name": "Guarded response detection",
+      "passed": true,
+      "details": "Correct: 4/4",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:49.123084"
+    },
+    {
+      "test_id": "T2-40",
+      "test_name": "Resonance detection",
+      "passed": true,
+      "details": "Correct: 4/4",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:50.613590"
+    },
+    {
+      "test_id": "T2-41",
+      "test_name": "Hesitation detection",
+      "passed": true,
+      "details": "Correct: 4/4",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:51.775649"
+    },
+    {
+      "test_id": "T2-42",
+      "test_name": "Schedule intent detection",
+      "passed": true,
+      "details": "Correct: 4/4",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:53.112315"
+    },
+    {
+      "test_id": "T2-43",
+      "test_name": "Confirmation detection",
+      "passed": true,
+      "details": "Correct: 5/5",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:53.967796"
+    },
+    {
+      "test_id": "T2-44",
+      "test_name": "Industry context loading",
+      "passed": true,
+      "details": "Industry stored in context",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:54.891425"
+    },
+    {
+      "test_id": "T2-45",
+      "test_name": "Company size context",
+      "passed": true,
+      "details": "Company size stored",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:56.042209"
+    },
+    {
+      "test_id": "T2-46",
+      "test_name": "Multiple objection handling",
+      "passed": true,
+      "details": "Objections tracked: 2",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:57.204990"
+    },
+    {
+      "test_id": "T2-47",
+      "test_name": "Multiple buying signals",
+      "passed": true,
+      "details": "Signals tracked: 2",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:58.164047"
+    },
+    {
+      "test_id": "T2-48",
+      "test_name": "State transition logging",
+      "passed": true,
+      "details": "Transitioned from SalesState.STATE_0 to SalesState.STATE_1",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:58:59.418176"
+    },
+    {
+      "test_id": "T2-49",
+      "test_name": "State entry timestamp",
+      "passed": true,
+      "details": "Timestamp recorded",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:59:00.398685"
+    },
+    {
+      "test_id": "T2-50",
+      "test_name": "End call flag",
+      "passed": true,
+      "details": "end_call: True",
+      "category": "contextual",
+      "timestamp": "2026-01-09T12:59:01.391467"
+    },
+    {
+      "test_id": "T2-51",
+      "test_name": "Hostile input triggers exit",
+      "passed": true,
+      "details": "All hostile inputs detected: True",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:02.642385"
+    },
+    {
+      "test_id": "T2-52",
+      "test_name": "Not interested respected",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_12",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:03.897529"
+    },
+    {
+      "test_id": "T2-53",
+      "test_name": "Permission denied detection",
+      "passed": true,
+      "details": "Denied: True, Granted: False",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:04.996535"
+    },
+    {
+      "test_id": "T2-54",
+      "test_name": "No time handling",
+      "passed": true,
+      "details": "All detected: True",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:06.090071"
+    },
+    {
+      "test_id": "T2-55",
+      "test_name": "Tech issue limit",
+      "passed": true,
+      "details": "Tech issue count: 2",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:07.041185"
+    },
+    {
+      "test_id": "T2-56",
+      "test_name": "STATE_12 always exits",
+      "passed": true,
+      "details": "end_call is True",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:07.999445"
+    },
+    {
+      "test_id": "T2-57",
+      "test_name": "No false promises",
+      "passed": true,
+      "details": "Checked 9 responses",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:08.002778"
+    },
+    {
+      "test_id": "T2-58",
+      "test_name": "No competitor bashing",
+      "passed": true,
+      "details": "Responses are professional",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:08.004936"
+    },
+    {
+      "test_id": "T2-59",
+      "test_name": "No pricing disclosure",
+      "passed": true,
+      "details": "No specific prices in quick responses",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:08.007099"
+    },
+    {
+      "test_id": "T2-60",
+      "test_name": "No contract terms",
+      "passed": true,
+      "details": "No legal/contract language",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:08.008482"
+    },
+    {
+      "test_id": "T2-61",
+      "test_name": "Respects do not call",
+      "passed": true,
+      "details": "Detected 2/3",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:09.107607"
+    },
+    {
+      "test_id": "T2-62",
+      "test_name": "Max questions per state",
+      "passed": true,
+      "details": "Transitions after 2 questions",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:10.009322"
+    },
+    {
+      "test_id": "T2-63",
+      "test_name": "Bye triggers exit",
+      "passed": true,
+      "details": "Bye patterns recognized",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:11.023816"
+    },
+    {
+      "test_id": "T2-64",
+      "test_name": "No medical advice",
+      "passed": true,
+      "details": "No medical content",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:11.026569"
+    },
+    {
+      "test_id": "T2-65",
+      "test_name": "No financial advice",
+      "passed": true,
+      "details": "No financial guidance",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:11.027640"
+    },
+    {
+      "test_id": "T2-66",
+      "test_name": "State machine deterministic",
+      "passed": true,
+      "details": "Results: [1, 1, 1]",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:12.069664"
+    },
+    {
+      "test_id": "T2-67",
+      "test_name": "No urgency manipulation",
+      "passed": true,
+      "details": "No pressure tactics",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:12.071327"
+    },
+    {
+      "test_id": "T2-68",
+      "test_name": "Questions are open-ended",
+      "passed": true,
+      "details": "No leading questions",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:12.071544"
+    },
+    {
+      "test_id": "T2-69",
+      "test_name": "Response cache isolation",
+      "passed": true,
+      "details": "Different keys per lead",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:12.071594"
+    },
+    {
+      "test_id": "T2-70",
+      "test_name": "No PII in logs",
+      "passed": true,
+      "details": "Logging function works",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:12.071800"
+    },
+    {
+      "test_id": "T2-71",
+      "test_name": "Graceful empty input",
+      "passed": true,
+      "details": "Empty input handled",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:13.029477"
+    },
+    {
+      "test_id": "T2-72",
+      "test_name": "Graceful None input",
+      "passed": true,
+      "details": "None input handled",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:14.296737"
+    },
+    {
+      "test_id": "T2-73",
+      "test_name": "Speaker label cleaning",
+      "passed": true,
+      "details": "Correct: 3/3",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:15.664006"
+    },
+    {
+      "test_id": "T2-74",
+      "test_name": "Double label cleaning",
+      "passed": true,
+      "details": "Result: AGENT: Hello",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:15.666091"
+    },
+    {
+      "test_id": "T2-75",
+      "test_name": "Whitespace normalization",
+      "passed": true,
+      "details": "Normalized: Hello there world",
+      "category": "guardrails",
+      "timestamp": "2026-01-09T12:59:15.666135"
+    },
+    {
+      "test_id": "T2-76",
+      "test_name": "Cold call scenario",
+      "passed": true,
+      "details": "Channel: cold_call, Tone: neutral_curious",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:17.006848"
+    },
+    {
+      "test_id": "T2-77",
+      "test_name": "Warm referral scenario",
+      "passed": true,
+      "details": "Channel: warm_referral, Tone: warm_confident",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:19.120960"
+    },
+    {
+      "test_id": "T2-78",
+      "test_name": "Inbound scenario",
+      "passed": true,
+      "details": "Channel: inbound, Tone: helpful_direct",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:21.838053"
+    },
+    {
+      "test_id": "T2-79",
+      "test_name": "Positive discovery flow",
+      "passed": true,
+      "details": "Progresses to state 3",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:24.188623"
+    },
+    {
+      "test_id": "T2-80",
+      "test_name": "Objection handling flow",
+      "passed": true,
+      "details": "Routes to objection handling: SalesState.STATE_8",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:26.508296"
+    },
+    {
+      "test_id": "T2-81",
+      "test_name": "Resonance to engagement",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_7",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:28.586451"
+    },
+    {
+      "test_id": "T2-82",
+      "test_name": "Multi-party detection",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_8",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:29.855865"
+    },
+    {
+      "test_id": "T2-83",
+      "test_name": "Meeting request detection",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_11",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:31.152297"
+    },
+    {
+      "test_id": "T2-84",
+      "test_name": "Scheduling flow",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_12",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:32.028077"
+    },
+    {
+      "test_id": "T2-85",
+      "test_name": "Follow-up consent",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_11",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:33.147665"
+    },
+    {
+      "test_id": "T2-86",
+      "test_name": "Confirmation flow",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_5",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:34.270568"
+    },
+    {
+      "test_id": "T2-87",
+      "test_name": "Transition state",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_6",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:35.241106"
+    },
+    {
+      "test_id": "T2-88",
+      "test_name": "Objection overcome",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_11",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:36.456760"
+    },
+    {
+      "test_id": "T2-89",
+      "test_name": "Hesitation to follow-up",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_10",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:37.603865"
+    },
+    {
+      "test_id": "T2-90",
+      "test_name": "Guarded discovery",
+      "passed": true,
+      "details": "Stays in: SalesState.STATE_3",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:38.561766"
+    },
+    {
+      "test_id": "T2-91",
+      "test_name": "End state is terminal",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_12",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:39.759181"
+    },
+    {
+      "test_id": "T2-92",
+      "test_name": "Lost interest exit",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_12",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:40.692935"
+    },
+    {
+      "test_id": "T2-93",
+      "test_name": "Scheduling not interested",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_12",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:41.904058"
+    },
+    {
+      "test_id": "T2-94",
+      "test_name": "Follow-up declined",
+      "passed": true,
+      "details": "Routes to: SalesState.STATE_12",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:42.789340"
+    },
+    {
+      "test_id": "T2-95",
+      "test_name": "Repeated objection",
+      "passed": true,
+      "details": "Stays in: SalesState.STATE_8",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:43.716777"
+    },
+    {
+      "test_id": "T2-96",
+      "test_name": "Hot lead scoring",
+      "passed": true,
+      "details": "Tier: hot_lead, Score: 87.5",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:43.718056"
+    },
+    {
+      "test_id": "T2-97",
+      "test_name": "Warm lead scoring",
+      "passed": true,
+      "details": "Tier: warm_lead, Score: 55.0",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:43.718077"
+    },
+    {
+      "test_id": "T2-98",
+      "test_name": "Cold lead scoring",
+      "passed": true,
+      "details": "Tier: cold_lead, Score: 12.5",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:43.718090"
+    },
+    {
+      "test_id": "T2-99",
+      "test_name": "Full conversation simulation",
+      "passed": true,
+      "details": "Final tier: warm_lead",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:44.985308"
+    },
+    {
+      "test_id": "T2-100",
+      "test_name": "Complete state coverage",
+      "passed": true,
+      "details": "Total states: 13",
+      "category": "scenarios",
+      "timestamp": "2026-01-09T12:59:44.987124"
+    }
+  ],
+  "timestamp": "2026-01-09T12:59:44.988032"
+}

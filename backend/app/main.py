@@ -6,6 +6,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import Base, engine
 
+# ✅ Import all models BEFORE creating tables (fixes SQLAlchemy relationship resolution)
+from app.models.lead import Lead
+from app.models.call import Call
+from app.models.transcript import Transcript
+from app.models.data_packet import DataPacket
+from app.models.email import Email
+try:
+    from app.models.linkedin import LinkedInMessage
+except ImportError:
+    pass
+
 from app.api import (
     leads,
     data_packets,
@@ -14,7 +25,8 @@ from app.api import (
     database,
     manual_call,
     websocket,
-    analyst,   # ✅ NEW
+    analyst,
+    health,   # ✅ NEW: Health checks for all integrations
 )
 
 logging.basicConfig(
@@ -97,7 +109,8 @@ app.include_router(reports.router)
 app.include_router(database.router)
 app.include_router(manual_call.router)
 app.include_router(websocket.router)
-app.include_router(analyst.router)  # ✅ NEW
+app.include_router(analyst.router)
+app.include_router(health.router)  # ✅ NEW: Health checks
 
 
 @app.get("/")

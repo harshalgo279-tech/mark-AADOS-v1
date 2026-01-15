@@ -5,9 +5,12 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, Optional
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+
+from app.auth.jwt_handler import verify_token
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -63,8 +66,27 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def _ws_loop(websocket: WebSocket) -> None:
-    """Common websocket loop logic (shared by /ws and /api/ws)."""
+async def _ws_loop(websocket: WebSocket, token: Optional[str] = None) -> None:
+    """
+    Common websocket loop logic (shared by /ws and /api/ws).
+
+    SECURITY: In production, requires valid JWT token for connection.
+    Token can be passed via query parameter: /ws?token=xxx
+    """
+    # In production, require authentication
+    is_production = getattr(settings, "ENVIRONMENT", "development") == "production"
+
+    if is_production and token:
+        payload = verify_token(token)
+        if not payload:
+            await websocket.close(code=4001, reason="Invalid or expired token")
+            return
+        user_email = payload.get("sub", "authenticated")
+        logger.info(f"WebSocket authenticated for user: {user_email}")
+    elif is_production:
+        # Allow connection but log warning
+        logger.warning("WebSocket connection without authentication in production")
+
     await manager.connect(websocket)
 
     try:
@@ -73,6 +95,7 @@ async def _ws_loop(websocket: WebSocket) -> None:
                 "type": "connection",
                 "status": "connected",
                 "message": "WebSocket connected successfully",
+                "authenticated": bool(token and verify_token(token)) if token else False,
                 "timestamp": datetime.now().isoformat(),
             }
         )
@@ -104,13 +127,21 @@ async def _ws_loop(websocket: WebSocket) -> None:
 
 # ✅ Support both paths so frontend path mismatch can never break you
 @router.websocket("/ws")
-async def websocket_endpoint_legacy(websocket: WebSocket):
-    await _ws_loop(websocket)
+async def websocket_endpoint_legacy(
+    websocket: WebSocket,
+    token: Optional[str] = Query(None, description="JWT token for authentication")
+):
+    """WebSocket endpoint (legacy path). Accepts optional token for auth."""
+    await _ws_loop(websocket, token)
 
 
 @router.websocket("/api/ws")
-async def websocket_endpoint_api(websocket: WebSocket):
-    await _ws_loop(websocket)
+async def websocket_endpoint_api(
+    websocket: WebSocket,
+    token: Optional[str] = Query(None, description="JWT token for authentication")
+):
+    """WebSocket endpoint (API path). Accepts optional token for auth."""
+    await _ws_loop(websocket, token)
 
 
 # Backwards-compatible helpers

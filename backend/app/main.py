@@ -7,6 +7,9 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import Base, engine, get_db
 
+# Import auth models to ensure tables are created
+from app.auth.models import User, APIKey
+
 from app.api import (
     leads,
     data_packets,
@@ -19,7 +22,11 @@ from app.api import (
     agent_config,  # Sales control plane config
     emails,  # Email tracking and management
     email_intelligence,  # AI-powered email optimization
+    auth,  # Authentication endpoints
 )
+
+# Security middleware
+from app.middleware.security import SecurityHeadersMiddleware
 
 # Rate limiting
 from app.utils.rate_limit import get_limiter, RATE_LIMITING_AVAILABLE
@@ -66,9 +73,41 @@ async def startup_event():
         logger.critical(f"FATAL: {e}")
         raise SystemExit(1)
 
-    # Create database tables
+    # Create database tables (including auth tables)
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created/verified")
+
+    # Create initial admin user if configured and doesn't exist
+    try:
+        from app.database import SessionLocal
+        from app.auth.models import User
+        from app.auth.jwt_handler import get_password_hash
+
+        admin_email = getattr(settings, "ADMIN_EMAIL", None)
+        admin_password = getattr(settings, "ADMIN_PASSWORD", None)
+
+        if admin_email and admin_password:
+            db = SessionLocal()
+            try:
+                existing = db.query(User).filter(User.email == admin_email).first()
+                if not existing:
+                    admin_user = User(
+                        email=admin_email,
+                        hashed_password=get_password_hash(admin_password),
+                        full_name="Admin User",
+                        is_admin=True,
+                        is_superuser=True,
+                        is_active=True,
+                    )
+                    db.add(admin_user)
+                    db.commit()
+                    logger.info(f"Initial admin user created: {admin_email}")
+                else:
+                    logger.info(f"Admin user already exists: {admin_email}")
+            finally:
+                db.close()
+    except Exception as e:
+        logger.error(f"Failed to create admin user: {e}")
 
     # Start email scheduler
     try:
@@ -115,20 +154,25 @@ async def shutdown_event():
     logger.info("Algonox AADOS Backend Shutdown Complete")
 
 
+# Security headers middleware (must be added before CORS)
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-API-Key"],  # Allow API key header
+    expose_headers=["X-Request-ID"],
 )
 
 # Routers
+app.include_router(auth.router)  # Authentication (public endpoints)
 app.include_router(leads.router)
 app.include_router(data_packets.router)
 app.include_router(calls.router)
 app.include_router(reports.router)
-app.include_router(database.router)
+app.include_router(database.router)  # Admin-only database inspection
 app.include_router(manual_call.router)
 app.include_router(websocket.router)
 app.include_router(analyst.router)

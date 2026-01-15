@@ -17,6 +17,9 @@ from app.api.websocket import broadcast_activity
 from app.config import settings
 from app.utils.logger import logger
 from app.utils.rate_limit import user_action_rate_limit
+from app.auth.dependencies import get_current_user
+from app.auth.models import UserInDB
+from app.utils.validators import validate_phone_number, validate_email
 
 # Optional pipeline deps
 try:
@@ -259,6 +262,7 @@ async def initiate_call_get_hint():
 async def initiate_call(
     payload: ManualCallInitiateRequest,
     request: Request,
+    current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -270,6 +274,7 @@ async def initiate_call(
     5) Kick VoiceAgent/Twilio if available
 
     Rate limited to prevent spam calls.
+    Requires authentication.
     """
     try:
         name = payload.contact_name.strip()
@@ -283,14 +288,24 @@ async def initiate_call(
 
         if not name:
             raise HTTPException(status_code=422, detail="contact_name is required")
-        if not email or not _looks_like_email(email):
-            raise HTTPException(status_code=422, detail="Valid email is required")
-        if not phone:
-            raise HTTPException(status_code=422, detail="phone_number is required")
+
+        # Validate email with proper validation
+        email_valid, email_error = validate_email(email)
+        if not email_valid:
+            raise HTTPException(status_code=422, detail=email_error or "Valid email is required")
+
+        # Validate phone number with international format support
+        phone_valid, normalized_phone, phone_error = validate_phone_number(phone)
+        if not phone_valid:
+            raise HTTPException(status_code=422, detail=phone_error or "Valid phone number is required")
+        phone = normalized_phone  # Use normalized E.164 format
+
         if not company:
             raise HTTPException(status_code=422, detail="company_name is required")
         if not title:
             raise HTTPException(status_code=422, detail="title is required")
+
+        logger.info(f"Call initiated by user {current_user.email} to {phone}")
 
         # 1) Resolve lead
         lead: Optional[Lead] = None

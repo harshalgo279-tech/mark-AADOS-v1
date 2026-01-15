@@ -29,8 +29,14 @@ python-dateutil==2.9.0
 # Environment
 python-dotenv==1.0.0
 
-# CORS
+# Security & Authentication
 python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bleach==6.1.0
+phonenumbers==8.13.26
+
+# Rate Limiting
+slowapi==0.1.9
 
 # Validation
 pydantic==2.9.2

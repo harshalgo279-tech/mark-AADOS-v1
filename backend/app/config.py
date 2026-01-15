@@ -144,6 +144,18 @@ drive real results."""
     # ================= Environment Configuration =================
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
 
+    # ================= Authentication Configuration =================
+    # JWT secret key - MUST be set in production via environment variable
+    # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+    JWT_SECRET_KEY: str | None = os.getenv("JWT_SECRET_KEY")
+
+    # Access token expiration in minutes (default: 24 hours)
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
+
+    # Initial admin user (created on first startup if not exists)
+    ADMIN_EMAIL: str | None = os.getenv("ADMIN_EMAIL")
+    ADMIN_PASSWORD: str | None = os.getenv("ADMIN_PASSWORD")
+
     # ================= Configurable Values (moved from hardcoded) =================
     MAX_CALL_DURATION_SECONDS: int = int(os.getenv("MAX_CALL_DURATION_SECONDS", "600"))
     ELEVENLABS_LLM_MODEL: str = os.getenv("ELEVENLABS_LLM_MODEL", "gpt-4o")
@@ -261,11 +273,22 @@ def get_config_status() -> dict:
 
 
 # Log configuration on import (development only)
+# SECURITY: Never log credentials or connection strings
 if settings.ENVIRONMENT != "production":
+    def _mask_url(url: str) -> str:
+        """Mask sensitive parts of URLs for safe logging."""
+        if not url:
+            return "[not set]"
+        # Mask password in database URLs
+        import re
+        masked = re.sub(r'://([^:]+):([^@]+)@', r'://\1:****@', url)
+        return masked
+
     print(f">>> .env loaded from: {ENV_FILE}")
-    print(f">>> DATABASE_URL in use: {settings.DATABASE_URL}")
+    print(f">>> DATABASE_URL configured: {bool(settings.DATABASE_URL)}")
     print(f">>> CORS_ORIGINS in use: {settings.CORS_ORIGINS}")
     print(f">>> FIRECRAWL_API_KEY present: {bool(os.getenv('FIRECRAWL_API_KEY'))}")
     print(f">>> ELEVENLABS_API_KEY present: {bool(settings.ELEVENLABS_API_KEY)}")
     print(f">>> ELEVENLABS_AGENT_ID present: {bool(settings.ELEVENLABS_AGENT_ID)}")
+    print(f">>> JWT_SECRET_KEY configured: {bool(settings.JWT_SECRET_KEY)}")
 

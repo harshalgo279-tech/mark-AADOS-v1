@@ -27,6 +27,7 @@ from urllib.parse import quote, urljoin
 from app.config import settings
 from app.utils.logger import logger
 from app.utils.retry import async_retry, RetryError
+from app.utils.validators import sanitize_html
 
 try:
     import aiosmtplib  # type: ignore
@@ -340,6 +341,8 @@ def wrap_in_template(
 ) -> str:
     """
     Wraps email body content in the branded HTML template.
+
+    SECURITY: Body HTML is sanitized to prevent XSS attacks.
     """
     sender_name = sender_name or getattr(settings, "EMAIL_SENDER_NAME", "Harsha")
     sender_title = sender_title or getattr(settings, "EMAIL_SENDER_TITLE", "Business Development")
@@ -355,10 +358,13 @@ def wrap_in_template(
 
     template = get_email_base_template()
 
+    # SECURITY: Sanitize body HTML to prevent XSS
+    sanitized_body = sanitize_html(body_html)
+
     return template.format(
         subject=html.escape(subject),
         preview_text=html.escape(preview_text or subject[:100]),
-        body_content=body_html,  # Already HTML
+        body_content=sanitized_body,  # Sanitized HTML
         sender_name=html.escape(sender_name),
         sender_title=html.escape(sender_title),
         company_address=html.escape(company_address),

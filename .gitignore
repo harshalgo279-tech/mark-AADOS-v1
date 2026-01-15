@@ -1,0 +1,43 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Logs
+logs/
+*.log
+backend/logs/
+backend/storage/tts/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Build artifacts
+dist/
+build/
+*.egg
+
+# Temporary files
+tmpclaude-*
+_ul
+*.mp3

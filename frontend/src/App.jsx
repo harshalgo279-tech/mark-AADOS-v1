@@ -37,9 +37,9 @@ const App = () => {
   );
   if (isTranscript) return <TranscriptPage />;
 
-  // Authentication state
+  // Authentication state (use same key as api.js)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!sessionStorage.getItem("access_token");
+    return !!sessionStorage.getItem("aados_access_token");
   });
 
   const WS_URL = useMemo(() => getWsUrl(), []);
@@ -47,9 +47,9 @@ const App = () => {
   const [view, setView] = useState("dashboard");
   const [loading, setLoading] = useState(false);
 
-  // Handle logout
+  // Handle logout (use same key as api.js)
   const handleLogout = () => {
-    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("aados_access_token");
     setIsAuthenticated(false);
     setView("dashboard");
   };
@@ -58,6 +58,15 @@ const App = () => {
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
   };
+
+  // Listen for auth:logout event from API interceptor
+  useEffect(() => {
+    const handleAuthLogout = () => {
+      setIsAuthenticated(false);
+    };
+    window.addEventListener("auth:logout", handleAuthLogout);
+    return () => window.removeEventListener("auth:logout", handleAuthLogout);
+  }, []);
 
   // Show login page if not authenticated
   if (!isAuthenticated) {

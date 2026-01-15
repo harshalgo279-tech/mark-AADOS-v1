@@ -84,12 +84,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token expired or invalid - clear auth and redirect to login
+      // Token expired or invalid - clear auth
       clearAuth();
-      // Only redirect if we're not already on the login page
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
+      // Dispatch custom event for App to handle (triggers re-render to login page)
+      window.dispatchEvent(new CustomEvent("auth:logout"));
     }
     return Promise.reject(error);
   }

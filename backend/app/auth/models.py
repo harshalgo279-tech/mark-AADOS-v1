@@ -119,7 +119,7 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     """Request model for user login."""
-    email: EmailStr
+    email: str  # Allow any string to support existing users with .local domains
     password: str
 
 

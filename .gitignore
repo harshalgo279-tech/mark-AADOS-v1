@@ -41,3 +41,7 @@ build/
 tmpclaude-*
 _ul
 *.mp3
+
+# Claude local settings
+.claude/*.local.md
+.claude/*.local.json

@@ -1,5 +1,4 @@
 # backend/app/api/calls.py
-from __future__ import annotations
 
 import asyncio
 import json

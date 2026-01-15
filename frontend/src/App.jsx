@@ -1,34 +1,68 @@
 // frontend/src/App.jsx
 import { useEffect, useMemo, useState } from "react";
-import { Users, FileText, Phone, Mail } from "lucide-react";
+import { Users, FileText, Phone, Mail, LogOut } from "lucide-react";
 
 import ManualCallForm from "./components/ManualCallForm";
 import DatabaseViewer from "./components/DatabaseViewer";
 import TranscriptPage from "./components/TranscriptPage";
 import CallMonitor from "./components/CallMonitor";
+import LoginPage from "./components/LoginPage";
 
 import WebSocketManager from "./utils/websocket";
 import api from "./utils/api";
 
 function getWsUrl() {
+  // First check for explicit WS URL
   const env = (import.meta?.env?.VITE_WS_URL || "").trim();
   if (env.startsWith("ws://") || env.startsWith("wss://")) return env;
 
+  // Derive from backend URL if available
+  const backendUrl = (import.meta?.env?.VITE_BACKEND_URL || "").trim();
+  if (backendUrl) {
+    const url = new URL(backendUrl);
+    const wsProto = url.protocol === "https:" ? "wss:" : "ws:";
+    return `${wsProto}//${url.host}/api/ws`;
+  }
+
+  // Fallback to same host (for local dev)
   const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${wsProto}//${window.location.host}/api/ws`;
 }
 
 const App = () => {
+  // Check if on transcript page (public route)
   const isTranscript = useMemo(
     () => window.location.pathname.startsWith("/transcript"),
     []
   );
   if (isTranscript) return <TranscriptPage />;
 
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!sessionStorage.getItem("access_token");
+  });
+
   const WS_URL = useMemo(() => getWsUrl(), []);
 
   const [view, setView] = useState("dashboard");
   const [loading, setLoading] = useState(false);
+
+  // Handle logout
+  const handleLogout = () => {
+    sessionStorage.removeItem("access_token");
+    setIsAuthenticated(false);
+    setView("dashboard");
+  };
+
+  // Handle successful login
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
 
   const [stats, setStats] = useState({
     total_leads: 0,
@@ -319,6 +353,19 @@ const App = () => {
               disabled={loading}
             >
               {loading ? "FETCHING..." : "FETCH LEADS"}
+            </button>
+
+            <button
+              className="btn"
+              onClick={handleLogout}
+              style={{
+                background: "rgba(255, 68, 68, 0.2)",
+                borderColor: "rgba(255, 68, 68, 0.4)",
+              }}
+              title="Logout"
+            >
+              <LogOut size={14} style={{ marginRight: 6 }} />
+              LOGOUT
             </button>
           </div>
         </div>

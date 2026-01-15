@@ -30,13 +30,13 @@ function getWsUrl() {
 }
 
 const App = () => {
-  // Check if on transcript page (public route)
+  // Check if on transcript page (public route) - this is constant per page load
   const isTranscript = useMemo(
     () => window.location.pathname.startsWith("/transcript"),
     []
   );
-  if (isTranscript) return <TranscriptPage />;
 
+  // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
   // Authentication state (use same key as api.js)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!sessionStorage.getItem("aados_access_token");
@@ -46,32 +46,6 @@ const App = () => {
 
   const [view, setView] = useState("dashboard");
   const [loading, setLoading] = useState(false);
-
-  // Handle logout (use same key as api.js)
-  const handleLogout = () => {
-    sessionStorage.removeItem("aados_access_token");
-    setIsAuthenticated(false);
-    setView("dashboard");
-  };
-
-  // Handle successful login
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
-  // Listen for auth:logout event from API interceptor
-  useEffect(() => {
-    const handleAuthLogout = () => {
-      setIsAuthenticated(false);
-    };
-    window.addEventListener("auth:logout", handleAuthLogout);
-    return () => window.removeEventListener("auth:logout", handleAuthLogout);
-  }, []);
-
-  // Show login page if not authenticated
-  if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
-  }
 
   const [stats, setStats] = useState({
     total_leads: 0,
@@ -84,11 +58,23 @@ const App = () => {
   const [activities, setActivities] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
 
-  // ✅ CALL MONITOR STATE
+  // CALL MONITOR STATE
   const [monitorOpen, setMonitorOpen] = useState(false);
   const [monitorCallId, setMonitorCallId] = useState(null);
   const [monitorStatus, setMonitorStatus] = useState("");
-  const [monitorLines, setMonitorLines] = useState([]); // store transcript as lines
+  const [monitorLines, setMonitorLines] = useState([]);
+
+  // Handle logout (use same key as api.js)
+  const handleLogout = () => {
+    sessionStorage.removeItem("aados_access_token");
+    setIsAuthenticated(false);
+    setView("dashboard");
+  };
+
+  // Handle successful login
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
 
   const addActivity = (type, message) => {
     setActivities((prev) => [
@@ -106,13 +92,10 @@ const App = () => {
     const s = String(delta || "").trim();
     if (!s) return null;
 
-    // Ensure speaker labels stay line-based
-    // If backend sends "LEAD: ... AGENT: ..." on same line, split them
     const normalized = s
       .replace(/\s+(AGENT:)/g, "\n$1")
       .replace(/\s+(LEAD:)/g, "\n$1");
 
-    // return as multiple lines if needed
     return normalized.split("\n").map((x) => x.trim()).filter(Boolean);
   };
 
@@ -128,11 +111,7 @@ const App = () => {
         emails_sent: d.emails?.sent ?? d.emails?.total ?? 0,
       });
     } catch (error) {
-      console.error("❌ Stats error:", error);
-      addActivity(
-        "error",
-        `Failed to load stats: ${error?.message || "unknown error"}`
-      );
+      console.error("Stats fetch issue:", error);
     }
   };
 
@@ -141,7 +120,7 @@ const App = () => {
       const res = await api.get("/api/leads/");
       setLeads(Array.isArray(res.data) ? res.data : []);
     } catch {
-      addActivity("error", "Connection error");
+      // Silently handle - user not authenticated yet
     }
   };
 
@@ -159,17 +138,28 @@ const App = () => {
         await fetchLeads();
         await fetchStats();
       } else {
-        addActivity("error", "Apollo fetch returned unexpected response");
+        addActivity("warning", "Apollo fetch returned unexpected response");
       }
     } catch {
-      addActivity("error", "Connection error");
+      addActivity("warning", "Could not fetch leads");
     } finally {
       setLoading(false);
     }
   };
 
-  // WebSocket lifecycle
+  // Listen for auth:logout event from API interceptor
   useEffect(() => {
+    const handleAuthLogout = () => {
+      setIsAuthenticated(false);
+    };
+    window.addEventListener("auth:logout", handleAuthLogout);
+    return () => window.removeEventListener("auth:logout", handleAuthLogout);
+  }, []);
+
+  // WebSocket lifecycle - only run when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     const ws = new WebSocketManager(WS_URL);
 
     ws.on("connected", () => {
@@ -179,19 +169,17 @@ const App = () => {
 
     ws.on("disconnected", () => {
       setWsConnected(false);
-      addActivity("error", "Connection error");
+      addActivity("warning", "WebSocket disconnected");
     });
 
-    ws.on("error", () => addActivity("error", "Connection error"));
+    ws.on("error", () => addActivity("warning", "WebSocket issue"));
 
-    // keepalive
     const pingTimer = setInterval(() => ws.send({ type: "ping" }), 20000);
 
-    // ✅ Call initiation event
     ws.on("call_initiated", (data) => {
       const callId = data?.call_id;
       const company = data?.company || "";
-      const phone = data?.message || ""; // often contains number/info
+      const phone = data?.message || "";
 
       if (callId) {
         setMonitorCallId(callId);
@@ -205,7 +193,7 @@ const App = () => {
           `Call initiated (call_id=${callId})${company ? ` for ${company}` : ""}${phone ? ` — ${phone}` : ""}`
         );
       } else {
-        addActivity("error", "Call initiated event missing call_id");
+        addActivity("warning", "Call initiated event missing call_id");
       }
     });
 
@@ -227,7 +215,6 @@ const App = () => {
 
       addActivity("system", `Call status: ${status} (call_id=${data.call_id})`);
 
-      // Close monitor shortly after completion
       if (
         status === "completed" ||
         status === "failed" ||
@@ -239,7 +226,6 @@ const App = () => {
           setMonitorOpen(false);
         }, 2500);
 
-        // refresh stats after completion
         fetchStats();
       }
     });
@@ -261,7 +247,6 @@ const App = () => {
       addActivity("system", parts.join(" | "));
     });
 
-    // ✅ Pipeline events
     ws.on("data_packet_generated", (data) => {
       addActivity(
         "success",
@@ -291,42 +276,38 @@ const App = () => {
       clearInterval(pingTimer);
       ws.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated, WS_URL]);
 
+  // Fetch initial data when authenticated
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchStats();
     fetchLeads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated]);
 
+  // Periodic stats refresh when authenticated
   useEffect(() => {
+    if (!isAuthenticated) return;
     const t = setInterval(() => fetchStats(), 12000);
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated]);
 
+  // NOW WE CAN DO CONDITIONAL RETURNS (after all hooks are declared)
+
+  // Transcript page (public route)
+  if (isTranscript) {
+    return <TranscriptPage />;
+  }
+
+  // Login page (not authenticated)
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Main dashboard (authenticated)
   return (
     <>
       <div className="grid-background" />
-
-      {/* ✅ LIVE CALL MONITOR OVERLAY */}
-      {/* {monitorOpen && (
-        <CallMonitor
-          callId={monitorCallId}
-          status={monitorStatus}
-          transcript={monitorLines.join("\n")}
-          onClose={() => setMonitorOpen(false)}
-          onOpenTranscript={() => {
-            if (!monitorCallId) return;
-            window.open(
-              `/transcript?call_id=${monitorCallId}`,
-              "_blank",
-              "noopener,noreferrer"
-            );
-          }}
-        />
-      )} */}
 
       <div className="shell">
         <div className="topbar">
@@ -463,10 +444,10 @@ const App = () => {
                     : [
                         {
                           id: 1,
-                          type: wsConnected ? "system" : "error",
+                          type: wsConnected ? "system" : "warning",
                           message: wsConnected
                             ? "System connected"
-                            : "Connection error",
+                            : "Connecting...",
                           timestamp: new Date().toISOString(),
                         },
                       ]
@@ -476,7 +457,7 @@ const App = () => {
                       <div className="activity-item" key={a.id}>
                         <div
                           className={`activity-bar ${
-                            a.type === "error" ? "bar-err" : "bar-ok"
+                            a.type === "warning" ? "bar-err" : "bar-ok"
                           }`}
                         />
                         <div className="activity-main">

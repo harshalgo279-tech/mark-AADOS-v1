@@ -17,7 +17,7 @@ from urllib.parse import unquote
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -322,12 +322,12 @@ async def get_email_analytics_summary(
     click_rate = (total_clicked / total_sent * 100) if total_sent > 0 else 0
     bounce_rate = (total_bounced / total_sent * 100) if total_sent > 0 else 0
 
-    # By email type
+    # By email type (using case() for PostgreSQL compatibility)
     by_type = db.query(
         Email.email_type,
         func.count(Email.id).label("sent"),
-        func.sum(func.if_(Email.opened_at.isnot(None), 1, 0)).label("opened"),
-        func.sum(func.if_(Email.clicked_at.isnot(None), 1, 0)).label("clicked"),
+        func.sum(case((Email.opened_at.isnot(None), 1), else_=0)).label("opened"),
+        func.sum(case((Email.clicked_at.isnot(None), 1), else_=0)).label("clicked"),
     ).filter(
         Email.sent_at >= since,
         Email.status == "sent"

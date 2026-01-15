@@ -15,6 +15,10 @@ from app.utils.logger import logger
 
 from app.services.firecrawl_service import FirecrawlService  # ✅ NEW
 
+# Authentication imports
+from app.auth.dependencies import get_current_user
+from app.auth.models import UserInDB
+
 router = APIRouter(prefix="/api/data-packet", tags=["data_packets"])
 
 
@@ -48,7 +52,11 @@ def packet_to_dict(p: DataPacket):
 
 
 @router.get("/{lead_id}")
-async def get_data_packet(lead_id: int, db: Session = Depends(get_db)):
+async def get_data_packet(
+    lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     packet = db.query(DataPacket).filter(DataPacket.lead_id == lead_id).first()
     if not packet:
         raise HTTPException(status_code=404, detail="Data packet not found")
@@ -114,7 +122,11 @@ def _extract_markdown_text(scraped: Any) -> str:
 
 
 @router.post("/generate/{lead_id}")
-async def generate_data_packet(lead_id: int, db: Session = Depends(get_db)):
+async def generate_data_packet(
+    lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")

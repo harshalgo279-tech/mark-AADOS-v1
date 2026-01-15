@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+import secrets
 from datetime import datetime
 from typing import List, Optional, Any, Dict
 
@@ -24,9 +25,16 @@ from app.config import settings
 from app.pipelines.call_pipeline import DataPacketAgent
 from app.services.firecrawl_service import FirecrawlService
 
+# Authentication imports
+from app.auth.dependencies import get_current_user
+from app.auth.models import UserInDB
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/leads", tags=["leads"])
+
+# Maximum pagination limit to prevent DoS
+MAX_PAGINATION_LIMIT = 500
 
 
 # -----------------------------
@@ -337,10 +345,38 @@ class ManualLeadCreate(BaseModel):
     company_website: Optional[str] = None
 
 
+# -----------------------------
+# List Leads Endpoint (NEW)
+# -----------------------------
+@router.get("")
+@router.get("/")
+async def list_leads(
+    skip: int = 0,
+    limit: int = 100,
+    status: Optional[str] = None,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    List all leads with pagination.
+    Requires authentication.
+    """
+    # Enforce pagination limit
+    limit = min(limit, MAX_PAGINATION_LIMIT)
+
+    q = db.query(Lead)
+    if status:
+        q = q.filter(Lead.status == status)
+
+    leads = q.order_by(Lead.created_at.desc()).offset(skip).limit(limit).all()
+    return [lead_to_dict(lead) for lead in leads]
+
+
 @router.post("/manual")
 async def create_manual_lead(
     payload: ManualLeadCreate,
     background_tasks: BackgroundTasks,
+    current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     try:
@@ -430,9 +466,13 @@ async def create_manual_lead(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ✅ NEW: Debug endpoint to run Firecrawl and view outcome immediately
+# ✅ Debug endpoint to run Firecrawl and view outcome immediately
 @router.get("/{lead_id}/firecrawl")
-async def debug_firecrawl(lead_id: int, db: Session = Depends(get_db)):
+async def debug_firecrawl(
+    lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -448,7 +488,11 @@ async def debug_firecrawl(lead_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{lead_id}/data-packet")
-async def get_or_create_lead_data_packet(lead_id: int, db: Session = Depends(get_db)):
+async def get_or_create_lead_data_packet(
+    lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -466,7 +510,11 @@ async def get_or_create_lead_data_packet(lead_id: int, db: Session = Depends(get
 
 
 @router.get("/{lead_id}")
-async def get_lead(lead_id: int, db: Session = Depends(get_db)):
+async def get_lead(
+    lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -479,6 +527,7 @@ async def get_lead(lead_id: int, db: Session = Depends(get_db)):
 async def scrape_company_comprehensive(
     lead_id: int,
     background_tasks: BackgroundTasks,
+    current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -587,7 +636,11 @@ async def scrape_company_comprehensive(
 
 
 @router.get("/{lead_id}/scraped-data")
-async def get_lead_scraped_data(lead_id: int, db: Session = Depends(get_db)):
+async def get_lead_scraped_data(
+    lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
     Returns all scraped company data for a lead.
     """
@@ -629,6 +682,7 @@ async def get_lead_scraped_data(lead_id: int, db: Session = Depends(get_db)):
 @router.post("/{lead_id}/scrape-playwright")
 async def scrape_company_with_playwright(
     lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
@@ -749,11 +803,25 @@ async def scrape_company_with_playwright(
 
 # ================= Email Unsubscribe (CAN-SPAM Compliance) =================
 
+def _get_unsubscribe_secret() -> str:
+    """Get the secret for unsubscribe token generation."""
+    # Try dedicated unsubscribe secret first, then JWT secret, then generate a random one
+    secret = getattr(settings, "UNSUBSCRIBE_SECRET", None)
+    if secret:
+        return secret
+    secret = getattr(settings, "JWT_SECRET_KEY", None)
+    if secret:
+        return secret
+    # This should never happen in production - log warning
+    logger.warning("No UNSUBSCRIBE_SECRET or JWT_SECRET_KEY configured - using random secret (tokens will break on restart)")
+    return secrets.token_urlsafe(32)
+
 def _verify_unsubscribe_token(lead_id: int, email: str, token: str) -> bool:
-    """Verify the unsubscribe token is valid."""
-    secret = getattr(settings, "ELEVENLABS_WEBHOOK_SECRET", "default-secret")
-    expected_token = hashlib.sha256(f"{lead_id}:{email}:{secret}".encode()).hexdigest()[:16]
-    return token == expected_token
+    """Verify the unsubscribe token is valid using constant-time comparison."""
+    secret = _get_unsubscribe_secret()
+    expected_token = hashlib.sha256(f"{lead_id}:{email}:{secret}".encode()).hexdigest()[:32]
+    # Use constant-time comparison to prevent timing attacks
+    return secrets.compare_digest(token, expected_token)
 
 
 @router.get("/unsubscribe", response_class=HTMLResponse)
@@ -818,6 +886,7 @@ async def unsubscribe_lead(
 @router.post("/{lead_id}/resubscribe")
 async def resubscribe_lead(
     lead_id: int,
+    current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """

@@ -1,6 +1,7 @@
 // frontend/src/components/EmailEditor.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Mail, Send, Save, X, Eye, Code, AlertCircle } from "lucide-react";
+import { sanitizeHtml } from "../utils/sanitize";
 
 /**
  * EmailEditor - Allows editing email subject and body before sending.
@@ -381,7 +382,7 @@ const EmailEditor = ({ email, onClose, onSave, onSend, saving, sending }) => {
                   color: "#333",
                   background: "#fafafa",
                 }}
-                dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
               />
             ) : viewMode === "html" ? (
               <textarea

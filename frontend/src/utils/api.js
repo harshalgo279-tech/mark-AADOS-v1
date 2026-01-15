@@ -29,6 +29,88 @@ const api = axios.create({
   timeout: 30000,
 });
 
+// ==================== JWT Authentication ====================
+
+const TOKEN_KEY = "aados_access_token";
+
+/**
+ * Store JWT token in sessionStorage (cleared when browser closes)
+ */
+export function setAuthToken(token) {
+  if (token) {
+    sessionStorage.setItem(TOKEN_KEY, token);
+  } else {
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
+}
+
+/**
+ * Get stored JWT token
+ */
+export function getAuthToken() {
+  return sessionStorage.getItem(TOKEN_KEY);
+}
+
+/**
+ * Check if user is authenticated
+ */
+export function isAuthenticated() {
+  return !!getAuthToken();
+}
+
+/**
+ * Clear authentication (logout)
+ */
+export function clearAuth() {
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
+// Add request interceptor to include JWT token in all requests
+api.interceptors.request.use(
+  (config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Token expired or invalid - clear auth and redirect to login
+      clearAuth();
+      // Only redirect if we're not already on the login page
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ==================== Auth API ====================
+
+export const authAPI = {
+  login: async (email, password) => {
+    const response = await api.post("/api/auth/login", { email, password });
+    if (response.data && response.data.access_token) {
+      setAuthToken(response.data.access_token);
+    }
+    return response;
+  },
+  logout: () => {
+    clearAuth();
+  },
+  me: () => api.get("/api/auth/me"),
+};
+
 /**
  * NOTE:
  * Keep endpoints as "/api/..." so dev proxy works.

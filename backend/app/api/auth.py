@@ -97,13 +97,14 @@ async def login(
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     user_data: UserCreate,
+    admin_user: UserInDB = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """
     Register a new user.
 
-    Note: In production, you may want to restrict this endpoint
-    or require admin approval for new users.
+    **Requires admin authentication.**
+    Only admins can create new user accounts.
     """
     # Check if user exists
     existing = db.query(User).filter(User.email == user_data.email).first()
@@ -126,7 +127,7 @@ async def register(
     db.commit()
     db.refresh(user)
 
-    logger.info(f"New user registered: {user.email}")
+    logger.info(f"Admin {admin_user.email} registered new user: {user.email}")
 
     return UserResponse.model_validate(user)
 

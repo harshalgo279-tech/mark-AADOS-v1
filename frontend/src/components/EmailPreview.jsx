@@ -1,5 +1,6 @@
 // frontend/src/components/EmailPreview.jsx
 import { Mail, Send, Clock } from "lucide-react";
+import { sanitizeHtml } from "../utils/sanitize";
 
 const EmailPreview = ({ email, onClose, onSend, sending }) => {
   if (!email) return null;
@@ -134,7 +135,7 @@ const EmailPreview = ({ email, onClose, onSend, sending }) => {
               fontSize: "14px",
               color: "#333",
             }}
-            dangerouslySetInnerHTML={{ __html: email.body_html }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.body_html) }}
           />
         </div>
       </div>

@@ -16,6 +16,7 @@ import {
   ChevronUp,
   ExternalLink,
 } from "lucide-react";
+import { sanitizeHtml } from "../utils/sanitize";
 
 /**
  * EmailHistory - Displays all emails for a lead with status indicators
@@ -279,7 +280,7 @@ const EmailHistory = ({
                         overflow: "hidden",
                       }}
                       dangerouslySetInnerHTML={{
-                        __html: email.body_html?.substring(0, 500) + "...",
+                        __html: sanitizeHtml((email.body_html || "").substring(0, 500) + "..."),
                       }}
                     />
                   </div>

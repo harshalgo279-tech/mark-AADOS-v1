@@ -36,7 +36,14 @@ from app.utils.rate_limit import (
     expensive_rate_limit,
 )
 
+# Authentication imports
+from app.auth.dependencies import get_current_user
+from app.auth.models import UserInDB
+
 router = APIRouter(prefix="/api/calls", tags=["calls"])
+
+# Maximum pagination limit to prevent DoS
+MAX_PAGINATION_LIMIT = 500
 
 
 # ---------------------------
@@ -224,8 +231,12 @@ async def list_calls(
     skip: int = 0,
     limit: int = 100,
     lead_id: Optional[int] = None,
+    current_user: UserInDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Enforce pagination limit
+    limit = min(limit, MAX_PAGINATION_LIMIT)
+
     q = db.query(Call)
     if lead_id:
         q = q.filter(Call.lead_id == lead_id)
@@ -244,7 +255,11 @@ async def list_calls(
 
 
 @router.get("/{call_id}", response_model=CallResponse)
-async def get_call(call_id: int, db: Session = Depends(get_db)):
+async def get_call(
+    call_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         raise HTTPException(status_code=404, detail="Call not found")
@@ -257,7 +272,11 @@ async def get_call(call_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{call_id}/transcript")
-async def get_call_transcript(call_id: int, db: Session = Depends(get_db)):
+async def get_call_transcript(
+    call_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         raise HTTPException(status_code=404, detail="Call not found")
@@ -592,7 +611,12 @@ async def elevenlabs_post_call(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/{call_id}/analyze")
 @expensive_rate_limit()
-async def analyze_call(call_id: int, request: Request, db: Session = Depends(get_db)):
+async def analyze_call(
+    call_id: int,
+    request: Request,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """Analyze a call - rate limited as it's an expensive AI operation."""
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
@@ -622,7 +646,11 @@ async def analyze_call(call_id: int, request: Request, db: Session = Depends(get
 # ---------------------------
 
 @router.get("/{call_id}/emails")
-async def list_call_emails(call_id: int, db: Session = Depends(get_db)):
+async def list_call_emails(
+    call_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         raise HTTPException(status_code=404, detail="Call not found")
@@ -642,7 +670,12 @@ async def list_call_emails(call_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{call_id}/emails/{email_id}/send")
-async def send_call_email(call_id: int, email_id: int, db: Session = Depends(get_db)):
+async def send_call_email(
+    call_id: int,
+    email_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         raise HTTPException(status_code=404, detail="Call not found")
@@ -662,7 +695,11 @@ async def send_call_email(call_id: int, email_id: int, db: Session = Depends(get
 
 
 @router.get("/{call_id}/linkedin/latest")
-async def get_latest_linkedin_for_call(call_id: int, db: Session = Depends(get_db)):
+async def get_latest_linkedin_for_call(
+    call_id: int,
+    current_user: UserInDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     call = db.query(Call).filter(Call.id == call_id).first()
     if not call:
         raise HTTPException(status_code=404, detail="Call not found")
